@@ -50,6 +50,16 @@ You can download pre-built standalone applications without needing terminal or d
 | **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.0-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
 | **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
 
+> **🍎 macOS Note (Gatekeeper Quarantine)**:  
+> Because AquaBuddy is an open-source community app not yet signed with a paid Apple Developer certificate, macOS may show *"AquaBuddy is damaged and can't be opened"* on downloaded files.  
+> To unblock it, run this quick command in Terminal:  
+> ```bash
+> xattr -cr /Applications/AquaBuddy.app
+> # or for the app in Downloads:
+> xattr -cr ~/Downloads/AquaBuddy.app
+> ```
+> Or go to **System Settings ➔ Privacy & Security ➔ click "Open Anyway"**.
+
 > *To build these installer packages yourself on your machine:*
 > ```bash
 > npm run dist:mac    # Builds macOS DMG & ZIP
