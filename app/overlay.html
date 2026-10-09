@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AquaBuddy Desktop Overlay</title>
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <div class="overlay-stage" id="overlayStage">
+    
+    <!-- Walking Character & Speech Bubble Unit -->
+    <div class="actor-unit" id="actorUnit">
+      
+      <!-- Mascot Container (3D Pixar Character Viewport) -->
+      <div class="mascot-actor" id="mascotActor">
+        <!-- 3D Three.js WebGL Container -->
+        <div id="mascot3DBox" class="mascot-3d-box"></div>
+      </div>
+
+      <!-- Speech Bubble Toast (Hidden while walking, opens after raising bottle) -->
+      <div class="speech-toast" id="speechToast">
+        <button class="toast-close-btn" id="toastCloseBtn" title="Close">✕</button>
+
+        <!-- Question State -->
+        <div id="stateQuestion" class="toast-state">
+          <div class="toast-header">
+            <span class="bubble-badge">💧</span>
+            <div class="header-text">
+              <span class="app-name">Leo & Fox</span>
+              <span class="header-sub">Hydration Reminder</span>
+            </div>
+          </div>
+          <div class="question-box">
+            Did you drink water?
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-yes" id="btnYes">
+              <span class="btn-icon">✨</span>
+              <span class="btn-label">Yes, I drank!</span>
+            </button>
+            <button class="btn btn-later" id="btnLater">
+              <span class="btn-icon">⏰</span>
+              <span class="btn-label">No, remind later</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Success Feedback State -->
+        <div id="stateSuccess" class="toast-state" style="display: none;">
+          <div class="feedback-layout">
+            <div class="feedback-icon">🎉</div>
+            <div class="feedback-info">
+              <h3 class="feedback-title">Yey! Good Job! 🌟</h3>
+              <p class="feedback-desc">Stay fresh & energized! Next reminder in <strong id="successGapText">30 minutes</strong>.</p>
+              <div class="stats-pill" id="statsPill">💧 +1 Glass logged</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Snooze Feedback State -->
+        <div id="stateSnooze" class="toast-state" style="display: none;">
+          <div class="feedback-layout">
+            <div class="feedback-icon">😭</div>
+            <div class="feedback-info">
+              <h3 class="feedback-title crying-title">Aww... Don't forget!</h3>
+              <p class="feedback-desc">Ok, I will remind you after <strong id="snoozeGapText">10 minutes</strong>!</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="../assets/three.min.js"></script>
+  <script src="../assets/aquabuddy_3d_character.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

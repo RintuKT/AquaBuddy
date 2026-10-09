@@ -1,0 +1,10 @@
+/* AquaBuddy Host Container Styles */
+#aquabuddy-water-reminder-container {
+  all: initial;
+  position: fixed !important;
+  left: 36px !important;
+  bottom: 24px !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  display: block !important;
+}

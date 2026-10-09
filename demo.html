@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaBuddy - Water Reminder Live Preview</title>
+  <link rel="stylesheet" href="content/content.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --accent: #38bdf8;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-card: rgba(30, 41, 59, 0.75);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #091224 0%, #0f172a 50%, #082f49 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 920px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      background: var(--surface-card);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 24px;
+      padding: 36px 30px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(2, 132, 199, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #ffffff 0%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 24px auto;
+      line-height: 1.5;
+    }
+
+    /* Editable Time Gaps Bar */
+    .interval-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 12px 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .interval-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .interval-input {
+      width: 68px;
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 8px;
+      text-align: center;
+      outline: none;
+    }
+
+    .interval-input:focus {
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Demo Controls */
+    .demo-controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-demo {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-demo:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(2, 132, 199, 0.55);
+    }
+
+    .btn-demo:active {
+      transform: translateY(0);
+    }
+
+    .status-bar {
+      margin-top: 18px;
+      padding: 12px 18px;
+      background: rgba(2, 132, 199, 0.12);
+      border: 1px dashed rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      font-size: 14px;
+      color: #7dd3fc;
+      text-align: center;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--surface-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      background: rgba(2, 132, 199, 0.15);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #e2e8f0;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="badge">💧 3D Animated Mascot • Water Reminder</div>
+      <h1>Leo & Fox Hydration Buddy</h1>
+      <p class="subtitle">
+        Watch the boy and his cute fennec fox walk in from the left side of the screen holding a water bottle! 
+        Tap <strong>Yes</strong> to see him jump & celebrate <strong>"Yey!"</strong>, or <strong>No</strong> to see him cry with tears. In both cases, he walks back to the left!
+      </p>
+
+      <!-- Editable Time Gap Settings -->
+      <div class="interval-bar">
+        <div class="interval-field">
+          <span>⏰ Reminder Gap:</span>
+          <input type="number" id="regularGapInput" class="interval-input" value="30" min="1" max="180">
+          <span>mins</span>
+        </div>
+        <div class="interval-field">
+          <span>⏱️ Snooze Gap:</span>
+          <input type="number" id="snoozeGapInput" class="interval-input" value="10" min="1" max="60">
+          <span>mins</span>
+        </div>
+      </div>
+
+      <div class="demo-controls">
+        <button class="btn-demo" id="triggerDemoBtn">
+          <span>🚀 Test Walking Mascot Animation</span>
+        </button>
+      </div>
+
+      <div class="status-bar" id="demoStatusBar">
+        Click the button above to watch Leo & Fox walk in from the left!
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚶</div>
+        <h3>Walks in from Left</h3>
+        <p>The boy and his fox walk across from the left margin with realistic gait, body bobbing, ground shadow, and sloshing water bottle.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎉</div>
+        <h3>"Yey!" Jumping Celebration</h3>
+        <p>Clicking <strong>Yes</strong> triggers an excited jumping animation with sparkles, plays a victory chime, and schedules next reminder after your regular gap.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">😭</div>
+        <h3>Crying Animation on "No"</h3>
+        <p>Clicking <strong>No, remind later</strong> makes the boy & fox cry with falling tear drops, then he walks back out and snoozes for your snooze gap!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Standalone Content Script Simulator for Demo -->
+  <script>
+    if (!window.chrome || !chrome.runtime || !chrome.runtime.onMessage) {
+      window.chrome = window.chrome || {};
+      window.chrome.runtime = {
+        getURL: function(path) {
+          return path;
+        },
+        onMessage: {
+          addListener: function(fn) {
+            window.__demoMessageListener = fn;
+          }
+        },
+        sendMessage: function(msg, callback) {
+          console.log('[Demo] Message sent:', msg);
+          const bar = document.getElementById('demoStatusBar');
+          const regMins = document.getElementById('regularGapInput').value;
+          const snoozeMins = document.getElementById('snoozeGapInput').value;
+
+          if (msg.action === 'YES_WATER_DRANK') {
+            if (bar) bar.innerHTML = `🎉 <strong>Yey! Awesome!</strong> Next reminder in <strong>${regMins} minutes</strong>. Mascot walking back to left...`;
+            if (callback) callback({ stats: { count: 1 } });
+          } else if (msg.action === 'REMIND_LATER') {
+            if (bar) bar.innerHTML = `😭 <strong>Aww... Snoozed!</strong> Mascot will be back in <strong>${snoozeMins} minutes</strong>. Walking back to left...`;
+            if (callback) callback({ success: true });
+          }
+        }
+      };
+    }
+  </script>
+  <script src="assets/three.min.js"></script>
+  <script src="assets/aquabuddy_3d_character.js?v=3.0"></script>
+  <script src="content/content.js?v=3.0"></script>
+  <script>
+    document.getElementById('triggerDemoBtn').addEventListener('click', () => {
+      const bar = document.getElementById('demoStatusBar');
+      const regMins = parseInt(document.getElementById('regularGapInput').value, 10) || 30;
+      const snoozeMins = parseInt(document.getElementById('snoozeGapInput').value, 10) || 10;
+
+      if (bar) bar.innerHTML = '👀 <strong>Look at the bottom-left of your screen!</strong> Leo & Fox are walking in...';
+      
+      if (window.__demoMessageListener) {
+        window.__demoMessageListener({
+          action: 'SHOW_WATER_REMINDER',
+          settings: {
+            intervalMinutes: regMins,
+            snoozeMinutes: snoozeMins
+          }
+        }, {}, () => {});
+      }
+    });
+
+    if (new URLSearchParams(window.location.search).get('autostart') === 'true') {
+      setTimeout(() => {
+        const btn = document.getElementById('triggerDemoBtn');
+        if (btn) btn.click();
+      }, 300);
+    }
+  </script>
+</body>
+</html>
