@@ -8,7 +8,8 @@
     "test": "electron .",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win",
+    "dist:win": "electron-builder --win zip --x64",
+    "dist:all": "npm run dist:mac && npm run dist:win && npm run package-extension",
     "package-extension": "node scripts/package_extension.js"
   },
   "build": {
@@ -27,12 +28,14 @@
     ],
     "mac": {
       "category": "public.app-category.lifestyle",
+      "icon": "icons/icon.icns",
       "target": [
         "dmg",
         "zip"
       ]
     },
     "win": {
+      "icon": "icons/icon.png",
       "target": [
         "nsis",
         "portable"
@@ -52,7 +55,7 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^40.8.0",
-    "electron-builder": "^26.0.0",
+    "electron-builder": "^26.15.3",
     "sharp": "^0.35.5"
   },
   "dependencies": {

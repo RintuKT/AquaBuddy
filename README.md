@@ -39,7 +39,27 @@ A cross-platform desktop application and browser extension that reminds you to d
 
 ---
 
-## 💻 How to Run the Desktop App (Mac & Windows)
+## 📦 Download Standalone Applications
+
+You can download pre-built standalone applications without needing terminal or developer tools:
+
+| Platform | Download Format | Description |
+| :--- | :--- | :--- |
+| **macOS** (Apple Silicon M1/M2/M3/M4) | [**AquaBuddy-1.0.0-arm64.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Double-click to open DMG and drag to Applications |
+| **macOS** (Portable Zip) | [**AquaBuddy-1.0.0-arm64-mac.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Standalone unzipped `.app` |
+| **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.0-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
+| **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
+
+> *To build these installer packages yourself on your machine:*
+> ```bash
+> npm run dist:mac    # Builds macOS DMG & ZIP
+> npm run dist:win    # Builds Windows 64-bit ZIP with AquaBuddy.exe
+> npm run dist:all    # Builds all platforms and Chrome Extension ZIP
+> ```
+
+---
+
+## 💻 How to Run from Source (Mac & Windows)
 
 ### Prerequisites
 - Node.js installed on your machine.
