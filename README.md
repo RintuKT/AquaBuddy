@@ -2,6 +2,11 @@
 
 A cross-platform desktop application and browser extension that reminds you to drink water with an animated mascot character that physically **walks across your screen from the left** holding a water bottle!
 
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue?style=for-the-badge&logo=googlechrome)](https://rintukt.github.io/AquaBuddy/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+🌐 **Try the Live Interactive Web Version**: [https://rintukt.github.io/AquaBuddy/](https://rintukt.github.io/AquaBuddy/)
+
 ---
 
 ## 🌟 Key Features
