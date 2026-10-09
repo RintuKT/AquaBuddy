@@ -43,22 +43,21 @@ A cross-platform desktop application and browser extension that reminds you to d
 
 You can download pre-built standalone applications without needing terminal or developer tools:
 
+### ⚡ 1-Line Instant Install for macOS (Zero Warnings)
+To install directly to `/Applications` with automatic security unblocking:
+```bash
+curl -fsSL https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.sh | bash
+```
+
+### 📥 Manual Downloads
+
 | Platform | Download Format | Description |
 | :--- | :--- | :--- |
-| **macOS** (Apple Silicon M1/M2/M3/M4) | [**AquaBuddy-1.0.0-arm64.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Double-click to open DMG and drag to Applications |
-| **macOS** (Portable Zip) | [**AquaBuddy-1.0.0-arm64-mac.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Standalone unzipped `.app` |
+| **macOS** (Native Installer) | [**AquaBuddy-1.0.0.pkg**](https://github.com/RintuKT/AquaBuddy/releases) | Double-click to install into `/Applications` |
+| **macOS** (Portable Bundle) | [**AquaBuddy-1.0.0-arm64-mac.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and double-click `Open AquaBuddy.command` |
+| **macOS** (Disk Image) | [**AquaBuddy-1.0.0-arm64.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Drag to Applications |
 | **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.0-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
 | **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
-
-> **🍎 macOS Note (Gatekeeper Quarantine)**:  
-> Because AquaBuddy is an open-source community app not yet signed with a paid Apple Developer certificate, macOS may show *"AquaBuddy is damaged and can't be opened"* on downloaded files.  
-> To unblock it, run this quick command in Terminal:  
-> ```bash
-> xattr -cr /Applications/AquaBuddy.app
-> # or for the app in Downloads:
-> xattr -cr ~/Downloads/AquaBuddy.app
-> ```
-> Or go to **System Settings ➔ Privacy & Security ➔ click "Open Anyway"**.
 
 > *To build these installer packages yourself on your machine:*
 > ```bash
