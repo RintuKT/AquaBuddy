@@ -39,33 +39,57 @@ A cross-platform desktop application and browser extension that reminds you to d
 
 ---
 
-## 📦 Download Standalone Applications
+## 📦 How to Install AquaBuddy
 
-You can download pre-built standalone applications without needing terminal or developer tools:
+AquaBuddy runs natively on macOS (Apple Silicon M1/M2/M3/M4 & Intel) and Windows 10/11:
 
-### ⚡ 1-Line Instant Install for macOS (Zero Warnings)
-To install directly to `/Applications` with automatic security unblocking:
+### 🍏 Option 1: 1-Line Instant Install for macOS (Zero Warnings — Recommended!)
+Opens directly without any security or quarantine warnings:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.sh | bash
 ```
+> **Why this is recommended**: Files downloaded via `curl` in Terminal are not tagged with browser quarantine attributes, so macOS launches AquaBuddy directly with zero security popups.
 
-### 📥 Manual Downloads
+---
 
-| Platform | Download Format | Description |
-| :--- | :--- | :--- |
-| **macOS** (Universal Installer) | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases) | Recommended! Double-click installer (Right-click > Open) |
-| **macOS** (Universal Disk Image) | [**AquaBuddy-1.0.3-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Universal for Intel & Apple Silicon Macs |
-| **Windows** (Installer & Portable) | [**AquaBuddy.Setup.1.0.3.exe**](https://github.com/RintuKT/AquaBuddy/releases) | Windows 64-bit Installer |
-| **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
+### 📥 Option 2: Download Installers from GitHub Releases
 
-> 💡 **Notice for Mac users ("AquaBuddy is damaged" or "Unidentified developer")**:
-> Because AquaBuddy is free, open-source software not signed with an expensive Apple Enterprise Certificate, macOS Gatekeeper blocks internet downloads by default:
-> - **Fastest fix**: Use the 1-Line Terminal Install command above (zero warnings!).
-> - **Or for .pkg installer**: Right-click the `.pkg` file -> select **Open** -> click **Open**. The installer automatically unblocks the app during setup!
-> - **Or for .dmg**: Drag `AquaBuddy.app` to `/Applications`, then in Terminal run:
->   ```bash
->   xattr -cr /Applications/AquaBuddy.app
->   ```
+Visit [**AquaBuddy Releases**](https://github.com/RintuKT/AquaBuddy/releases/latest) to download pre-built packages:
+
+| Platform | Recommended File | Alternative | Description |
+| :--- | :--- | :--- | :--- |
+| **macOS** | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.3-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | Universal for Intel & Apple Silicon Macs |
+| **Windows** | [**AquaBuddy.Setup.1.0.3.exe**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.3-win.zip**](https://github.com/RintuKT/AquaBuddy/releases/latest) | 64-bit Windows PC / Laptop installer |
+| **Chrome / Edge** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases/latest) | — | Unpack & load in `chrome://extensions` |
+
+---
+
+### 🛡️ How to Open on Mac If Prompted ("Apple could not verify..." or "Unidentified Developer")
+
+Because AquaBuddy is a free, community open-source project (not signed with an expensive $99/year Apple Enterprise Developer certificate), macOS Gatekeeper blocks internet downloads by default with:
+> *"Apple could not verify “AquaBuddy” is free of malware..."* or *"AquaBuddy is from an unidentified developer."*
+
+You can allow it in **5 seconds** using any of these methods:
+
+#### Method A: System Settings Bypass (Standard Mac Way)
+1. When the alert pops up, click **Done**.
+2. Open **Apple menu () > System Settings > Privacy & Security**.
+3. Scroll down to the **Security** section.
+4. Click **"Open Anyway"** next to *"AquaBuddy was blocked from use"*.
+5. Enter your Mac password or Touch ID. *(You only need to do this once!)*
+
+#### Method B: Right-Click to Open
+1. Drag **AquaBuddy.app** into your `/Applications` folder.
+2. In Finder, go to `/Applications`.
+3. **Right-click** (or Hold `Control` and click) on **AquaBuddy**.
+4. Click **Open** from the menu, then click **Open** in the confirmation box.
+
+#### Method C: Quick 1-Second Terminal Unblock
+If you already dragged AquaBuddy to Applications, paste this into Terminal:
+```bash
+xattr -cr /Applications/AquaBuddy.app
+```
+Then launch AquaBuddy normally!
 
 ---
 
