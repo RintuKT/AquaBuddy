@@ -69,40 +69,4 @@ try {
   console.error('⚠️ Warning creating ZIP:', err.message);
 }
 
-// 4. Create Portable Bundle with Auto-Unblock Launcher
-console.log('📦 Creating Portable Mac Bundle with 1-click launcher...');
-const portableDir = path.join(distDir, 'AquaBuddy-Portable-Mac');
-if (fs.existsSync(portableDir)) {
-  fs.rmSync(portableDir, { recursive: true, force: true });
-}
-fs.mkdirSync(portableDir, { recursive: true });
-
-try {
-  execSync(`cp -R "${universalApp}" "${portableDir}/"`);
-  
-  const launcherPath = path.join(portableDir, 'Open AquaBuddy.command');
-  fs.writeFileSync(
-    launcherPath,
-    `#!/bin/bash
-# AquaBuddy 1-Click Launcher (Bypasses Gatekeeper "damaged" alert)
-DIR="$( cd "$( dirname "\${BASH_SOURCE[0]}" )" && pwd )"
-APP="$DIR/AquaBuddy.app"
-
-echo "💧 Launching AquaBuddy..."
-xattr -cr "$APP" 2>/dev/null || true
-chmod -R 755 "$APP" 2>/dev/null || true
-open "$APP"
-exit 0
-`,
-    { mode: 0o755 }
-  );
-  execSync(`chmod +x "${launcherPath}"`);
-
-  const portableZipOutput = path.join(distDir, `AquaBuddy-${version}-mac-portable.zip`);
-  execSync(`ditto -c -k --keepParent "${portableDir}" "${portableZipOutput}"`, { cwd: rootDir });
-  console.log(`✅ Built Portable Bundle at: ${portableZipOutput}`);
-} catch (err) {
-  console.error('⚠️ Warning creating portable bundle:', err.message);
-}
-
 console.log('🎉 All macOS packages generated successfully!');
