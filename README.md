@@ -54,9 +54,9 @@ curl -fsSL https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.sh |
 | Platform | Download Format | Description |
 | :--- | :--- | :--- |
 | **macOS** (Universal Installer) | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases) | Recommended! Double-click installer (Right-click > Open) |
-| **macOS** (Portable Universal ZIP) | [**AquaBuddy-1.0.0-mac-portable.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip & double-click `Open AquaBuddy.command` |
-| **macOS** (Universal Disk Image) | [**AquaBuddy-1.0.0-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Universal for Intel & Apple Silicon Macs |
-| **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.0-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
+| **macOS** (Portable Universal ZIP) | [**AquaBuddy-1.0.3-mac-portable.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip & double-click `Open AquaBuddy.command` |
+| **macOS** (Universal Disk Image) | [**AquaBuddy-1.0.3-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Universal for Intel & Apple Silicon Macs |
+| **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.3-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
 | **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
 
 > 💡 **Notice for Mac users ("AquaBuddy is damaged" or "Unidentified developer")**:

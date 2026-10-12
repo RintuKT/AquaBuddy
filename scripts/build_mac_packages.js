@@ -8,7 +8,10 @@ const universalApp = path.join(distDir, 'mac-universal', 'AquaBuddy.app');
 const scriptsDir = path.join(rootDir, 'scripts', 'pkg-scripts');
 const postinstallScript = path.join(scriptsDir, 'postinstall');
 
-console.log('🚀 Starting macOS package generation...');
+const pkgJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+const version = pkgJson.version;
+
+console.log(`🚀 Starting macOS package generation for AquaBuddy v${version}...`);
 
 if (!fs.existsSync(universalApp)) {
   console.log('📦 Universal AquaBuddy.app not found in dist/mac-universal. Generating with electron-builder...');
@@ -55,7 +58,7 @@ try {
 
 // 3. Create Universal ZIP
 console.log('📦 Creating Universal ZIP...');
-const zipOutput = path.join(distDir, 'AquaBuddy-1.0.0-universal-mac.zip');
+const zipOutput = path.join(distDir, `AquaBuddy-${version}-universal-mac.zip`);
 try {
   execSync(
     `ditto -c -k --keepParent "${universalApp}" "${zipOutput}"`,
@@ -95,7 +98,7 @@ exit 0
   );
   execSync(`chmod +x "${launcherPath}"`);
 
-  const portableZipOutput = path.join(distDir, 'AquaBuddy-1.0.0-mac-portable.zip');
+  const portableZipOutput = path.join(distDir, `AquaBuddy-${version}-mac-portable.zip`);
   execSync(`ditto -c -k --keepParent "${portableDir}" "${portableZipOutput}"`, { cwd: rootDir });
   console.log(`✅ Built Portable Bundle at: ${portableZipOutput}`);
 } catch (err) {
