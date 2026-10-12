@@ -53,18 +53,20 @@ curl -fsSL https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.sh |
 
 | Platform | Download Format | Description |
 | :--- | :--- | :--- |
-| **macOS** (Native Installer) | [**AquaBuddy-1.0.0.pkg**](https://github.com/RintuKT/AquaBuddy/releases) | Double-click to install into `/Applications` |
-| **macOS** (Portable Bundle) | [**AquaBuddy-1.0.0-arm64-mac.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and double-click `Open AquaBuddy.command` |
-| **macOS** (Disk Image) | [**AquaBuddy-1.0.0-arm64.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Drag to Applications |
+| **macOS** (Universal Installer) | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases) | Recommended! Double-click installer (Right-click > Open) |
+| **macOS** (Portable Universal ZIP) | [**AquaBuddy-1.0.0-mac-portable.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip & double-click `Open AquaBuddy.command` |
+| **macOS** (Universal Disk Image) | [**AquaBuddy-1.0.0-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases) | Universal for Intel & Apple Silicon Macs |
 | **Windows** (64-bit PC / Laptop) | [**AquaBuddy-1.0.0-win.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Extract and double-click `AquaBuddy.exe` to run |
 | **Chrome / Edge Extension** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases) | Unzip and Load Unpacked in `chrome://extensions` |
 
-> *To build these installer packages yourself on your machine:*
-> ```bash
-> npm run dist:mac    # Builds macOS DMG & ZIP
-> npm run dist:win    # Builds Windows 64-bit ZIP with AquaBuddy.exe
-> npm run dist:all    # Builds all platforms and Chrome Extension ZIP
-> ```
+> 💡 **Notice for Mac users ("AquaBuddy is damaged" or "Unidentified developer")**:
+> Because AquaBuddy is free, open-source software not signed with an expensive Apple Enterprise Certificate, macOS Gatekeeper blocks internet downloads by default:
+> - **Fastest fix**: Use the 1-Line Terminal Install command above (zero warnings!).
+> - **Or for .pkg installer**: Right-click the `.pkg` file -> select **Open** -> click **Open**. The installer automatically unblocks the app during setup!
+> - **Or for .dmg**: Drag `AquaBuddy.app` to `/Applications`, then in Terminal run:
+>   ```bash
+>   xattr -cr /Applications/AquaBuddy.app
+>   ```
 
 ---
 

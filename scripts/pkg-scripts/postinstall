@@ -1,0 +1,11 @@
+#!/bin/bash
+# AquaBuddy Postinstall Script
+# Automatically strips Gatekeeper quarantine attribute on installation
+APP_PATH="/Applications/AquaBuddy.app"
+
+if [ -d "$APP_PATH" ]; then
+    xattr -cr "$APP_PATH" 2>/dev/null || true
+    chmod -R 755 "$APP_PATH" 2>/dev/null || true
+fi
+
+exit 0

@@ -7,8 +7,8 @@
     "start": "electron .",
     "test": "electron .",
     "dist": "electron-builder",
-    "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win zip --x64",
+    "dist:mac": "electron-builder --mac dmg --universal && node scripts/build_mac_packages.js",
+    "dist:win": "electron-builder --win zip nsis --x64",
     "dist:all": "npm run dist:mac && npm run dist:win && npm run package-extension",
     "package-extension": "node scripts/package_extension.js"
   },
