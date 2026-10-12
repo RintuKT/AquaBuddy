@@ -158,16 +158,22 @@ function openSettingsWindow() {
 
 // 3. System Tray Menu
 function createTray() {
-  const iconPath = path.join(__dirname, 'icons', 'icon16.png');
+  const trayIconPath = path.join(__dirname, 'icons', 'tray-icon.png');
+  const fallbackPath = path.join(__dirname, 'icons', 'icon16.png');
+  const iconPath = fs.existsSync(trayIconPath) ? trayIconPath : fallbackPath;
+
   let trayIcon;
   if (fs.existsSync(iconPath)) {
     trayIcon = nativeImage.createFromPath(iconPath);
+    if (process.platform === 'darwin') {
+      trayIcon = trayIcon.resize({ width: 26, height: 18 });
+    }
   } else {
     trayIcon = nativeImage.createEmpty();
   }
 
   tray = new Tray(trayIcon);
-  tray.setToolTip('AquaBuddy - Water Drink Reminder');
+  tray.setToolTip('AquaBuddy - Leo & Fox Hydration Reminder');
 
   updateTrayMenu();
 }

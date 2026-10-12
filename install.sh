@@ -26,7 +26,7 @@ TARGET_APP="$APP_DIR/AquaBuddy.app"
 TMP_DIR=$(mktemp -d)
 ZIP_FILE="$TMP_DIR/AquaBuddy.zip"
 
-DOWNLOAD_URL="https://github.com/RintuKT/AquaBuddy/releases/download/v1.0.3/AquaBuddy-1.0.3-universal-mac.zip"
+DOWNLOAD_URL="https://github.com/RintuKT/AquaBuddy/releases/download/v1.0.4/AquaBuddy-1.0.4-universal-mac.zip"
 
 echo "📦 1. Downloading AquaBuddy Universal for macOS..."
 curl -fSL "$DOWNLOAD_URL" -o "$ZIP_FILE"
