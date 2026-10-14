@@ -87,7 +87,7 @@ function startWalkingSequence(data) {
   if (successGapText) successGapText.textContent = `${currentIntervalMinutes} minutes`;
   if (snoozeGapText) snoozeGapText.textContent = `${currentSnoozeMinutes} minutes`;
 
-  const scale = settings.characterScale || 1.3;
+  const scale = Math.min(1.4, Math.max(0.8, settings.characterScale || 1.4));
   document.documentElement.style.setProperty('--mascot-scale', scale);
 
   speechToast.classList.remove('show-toast', 'hide-toast');

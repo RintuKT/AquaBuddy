@@ -13,9 +13,10 @@ const DEFAULT_SETTINGS = {
   intervalMinutes: 30,
   snoozeMinutes: 10,
   dailyGoal: 8,
-  characterSize: 'large', // 'small' (120px), 'medium' (170px), 'large' (220px), 'xlarge' (280px)
-  characterScale: 1.3,
+  characterSize: 'Max Large',
+  characterScale: 1.4,
   soundEnabled: true,
+  autoStartOnBoot: true,
   walkSpeed: 'normal'
 };
 
@@ -59,8 +60,27 @@ function getTodayDateKey() {
 
 let appData = loadData();
 
+// Auto-launch / Startup configuration
+function applyAutoLaunch(enabled = true) {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      openAsHidden: true
+    });
+    console.log(`[AquaBuddy] Auto-start on boot configured: ${enabled}`);
+  } catch (err) {
+    console.error('[AquaBuddy] Error setting login item:', err);
+  }
+}
+
 // App ready
 app.whenReady().then(() => {
+  // On macOS, running as an accessory menu bar item prevents Mission Control / Spaces from switching
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
+
+  applyAutoLaunch(appData.settings.autoStartOnBoot !== false);
   createOverlayWindow();
   createTray();
   scheduleNextReminder(appData.settings.intervalMinutes);
@@ -103,7 +123,7 @@ function createOverlayWindow() {
     skipTaskbar: true,
     resizable: false,
     movable: false,
-    focusable: true,
+    focusable: false, // Prevents stealing window focus and avoids space switching on macOS
     hasShadow: false,
     show: false,
     webPreferences: {
@@ -115,8 +135,8 @@ function createOverlayWindow() {
 
   // Cross-platform always on top configuration
   if (process.platform === 'darwin') {
-    overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    overlayWindow.setAlwaysOnTop(true, 'screen-saver');
+    overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+    overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
   } else {
     overlayWindow.setAlwaysOnTop(true, 'topmost');
   }
@@ -243,7 +263,7 @@ function triggerMascotWalk() {
   // Adjust window width in case display changed
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  const overlayHeight = 360;
+  const overlayHeight = 440;
   overlayWindow.setBounds({
     x: 0,
     y: height - overlayHeight,
@@ -251,7 +271,13 @@ function triggerMascotWalk() {
     height: overlayHeight
   });
 
-  overlayWindow.show();
+  if (process.platform === 'darwin') {
+    overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+    overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+  }
+
+  // showInactive() shows without stealing focus or switching active macOS spaces
+  overlayWindow.showInactive();
   overlayWindow.webContents.send('START_MASCOT_WALK', {
     settings: appData.settings,
     stats: appData.stats
@@ -323,6 +349,9 @@ ipcMain.handle('GET_APP_STATUS', () => {
 
 ipcMain.handle('SAVE_SETTINGS', (event, newSettings) => {
   appData.settings = { ...appData.settings, ...newSettings };
+  if (typeof newSettings.autoStartOnBoot === 'boolean') {
+    applyAutoLaunch(newSettings.autoStartOnBoot);
+  }
   saveData(appData);
   updateTrayMenu();
   scheduleNextReminder(appData.settings.intervalMinutes);

@@ -42,19 +42,19 @@
       <!-- Size Preset Buttons -->
       <div class="size-presets">
         <button class="btn-preset" data-scale="0.9" data-name="Small">Small (0.9x)</button>
-        <button class="btn-preset" data-scale="1.2" data-name="Medium">Medium (1.2x)</button>
-        <button class="btn-preset active" data-scale="1.4" data-name="Large">Large (1.4x)</button>
-        <button class="btn-preset" data-scale="1.8" data-name="Extra Large">Extra Large (1.8x)</button>
+        <button class="btn-preset" data-scale="1.1" data-name="Medium">Medium (1.1x)</button>
+        <button class="btn-preset" data-scale="1.25" data-name="Standard">Standard (1.25x)</button>
+        <button class="btn-preset active" data-scale="1.4" data-name="Max Large">Max Large (1.4x)</button>
       </div>
 
       <!-- Fine Scale Slider -->
       <div class="slider-group">
         <label for="scaleSlider">Custom Character Scale: <span id="sliderValue">1.4x</span></label>
-        <input type="range" id="scaleSlider" min="0.8" max="2.2" step="0.1" value="1.4">
+        <input type="range" id="scaleSlider" min="0.8" max="1.4" step="0.05" value="1.4">
         <div class="slider-labels">
-          <span>Compact</span>
-          <span>Standard</span>
-          <span>Extra Big</span>
+          <span>Compact (0.8x)</span>
+          <span>Medium (1.1x)</span>
+          <span>Max Large (1.4x)</span>
         </div>
       </div>
     </section>
@@ -84,6 +84,11 @@
         <div class="form-group toggle-group">
           <label for="soundCheck">Sound Effects</label>
           <input type="checkbox" id="soundCheck" checked>
+        </div>
+
+        <div class="form-group toggle-group">
+          <label for="autoStartCheck">Start on Laptop Boot</label>
+          <input type="checkbox" id="autoStartCheck" checked>
         </div>
       </div>
     </section>

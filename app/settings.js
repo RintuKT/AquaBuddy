@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const snoozeInput = document.getElementById('snoozeInput');
   const goalInput = document.getElementById('goalInput');
   const soundCheck = document.getElementById('soundCheck');
+  const autoStartCheck = document.getElementById('autoStartCheck');
   const statsCounter = document.getElementById('statsCounter');
 
   const btnSave = document.getElementById('btnSave');
@@ -18,15 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnTestWalkTop = document.getElementById('btnTestWalkTop');
 
   let currentScale = 1.4;
-  let currentSizeName = 'Large';
+  let currentSizeName = 'Max Large';
 
   // Load existing status
   async function loadSettings() {
     if (!window.aquaBuddyAPI) return;
     const { settings, stats } = await window.aquaBuddyAPI.getAppStatus();
 
-    currentScale = settings.characterScale || 1.4;
-    currentSizeName = settings.characterSize || 'large';
+    currentScale = Math.min(1.4, Math.max(0.8, settings.characterScale || 1.4));
+    currentSizeName = settings.characterSize || 'Max Large';
 
     // Apply values to form
     scaleSlider.value = currentScale;
@@ -36,6 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     snoozeInput.value = String(settings.snoozeMinutes || 10);
     goalInput.value = String(settings.dailyGoal || 8);
     soundCheck.checked = settings.soundEnabled !== false;
+    if (autoStartCheck) {
+      autoStartCheck.checked = settings.autoStartOnBoot !== false;
+    }
 
     // Update stats counter
     if (stats) {
@@ -44,19 +48,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function updateSizeDisplay(scale) {
-    sliderValue.textContent = `${Number(scale).toFixed(1)}x`;
-    scaleBadge.textContent = `Scale: ${Number(scale).toFixed(1)}x`;
+    const clamped = Math.min(1.4, Math.max(0.8, scale));
+    sliderValue.textContent = `${Number(clamped).toFixed(2)}x`;
+    scaleBadge.textContent = `Scale: ${Number(clamped).toFixed(2)}x`;
 
     // Live preview scaling
-    const normalizedPreviewScale = (scale / 1.4);
+    const normalizedPreviewScale = (clamped / 1.4);
     previewMascot.style.transform = `scale(${normalizedPreviewScale})`;
 
     // Update preset active button state
     presetButtons.forEach((btn) => {
       const btnScale = parseFloat(btn.dataset.scale);
-      if (Math.abs(btnScale - scale) < 0.05) {
+      if (Math.abs(btnScale - clamped) < 0.05) {
         btn.classList.add('active');
-        scaleBadge.textContent = `Scale: ${Number(scale).toFixed(1)}x (${btn.dataset.name})`;
+        scaleBadge.textContent = `Scale: ${Number(clamped).toFixed(2)}x (${btn.dataset.name})`;
       } else {
         btn.classList.remove('active');
       }
@@ -65,14 +70,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Slider change
   scaleSlider.addEventListener('input', (e) => {
-    currentScale = parseFloat(e.target.value);
+    currentScale = Math.min(1.4, Math.max(0.8, parseFloat(e.target.value)));
     updateSizeDisplay(currentScale);
   });
 
   // Preset button clicks
   presetButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      currentScale = parseFloat(btn.dataset.scale);
+      currentScale = Math.min(1.4, Math.max(0.8, parseFloat(btn.dataset.scale)));
       scaleSlider.value = currentScale;
       updateSizeDisplay(currentScale);
     });
@@ -81,11 +86,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save Settings
   btnSave.addEventListener('click', async () => {
     const updated = {
-      characterScale: currentScale,
+      characterScale: Math.min(1.4, Math.max(0.8, currentScale)),
       intervalMinutes: parseInt(intervalInput.value, 10),
       snoozeMinutes: parseInt(snoozeInput.value, 10),
       dailyGoal: parseInt(goalInput.value, 10) || 8,
-      soundEnabled: soundCheck.checked
+      soundEnabled: soundCheck.checked,
+      autoStartOnBoot: autoStartCheck ? autoStartCheck.checked : true
     };
 
     if (window.aquaBuddyAPI) {
