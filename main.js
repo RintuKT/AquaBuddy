@@ -100,11 +100,19 @@ app.whenReady().then(() => {
     triggerMascotWalk();
   }, 1000);
 
+  // Automatically open settings window in dev/test mode so user can test immediately
+  if (process.argv.includes('--show-settings') || !app.isPackaged) {
+    setTimeout(() => {
+      openSettingsWindow();
+    }, 400);
+  }
+
   // Show settings window on first launch or open tray
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createOverlayWindow();
     }
+    openSettingsWindow();
   });
 });
 
