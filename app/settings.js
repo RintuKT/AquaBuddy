@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sliderValue = document.getElementById('sliderValue');
   const presetButtons = document.querySelectorAll('.btn-preset');
 
+  const charNameInput = document.getElementById('charNameInput');
+  const btnResetName = document.getElementById('btnResetName');
   const intervalInput = document.getElementById('intervalInput');
   const snoozeInput = document.getElementById('snoozeInput');
   const goalInput = document.getElementById('goalInput');
@@ -21,10 +23,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentScale = 1.4;
   let currentSizeName = 'Max Large';
 
+  if (btnResetName && charNameInput) {
+    btnResetName.addEventListener('click', () => {
+      charNameInput.value = 'Leo & Fox';
+    });
+  }
+
   // Load existing status
   async function loadSettings() {
     if (!window.aquaBuddyAPI) return;
     const { settings, stats } = await window.aquaBuddyAPI.getAppStatus();
+
+    if (charNameInput) {
+      charNameInput.value = settings.characterName || 'Leo & Fox';
+    }
 
     currentScale = Math.min(1.4, Math.max(0.8, settings.characterScale || 1.4));
     currentSizeName = settings.characterSize || 'Max Large';
@@ -86,6 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save Settings
   btnSave.addEventListener('click', async () => {
     const updated = {
+      characterName: (charNameInput ? charNameInput.value.trim() : '') || 'Leo & Fox',
       characterScale: Math.min(1.4, Math.max(0.8, currentScale)),
       intervalMinutes: parseInt(intervalInput.value, 10),
       snoozeMinutes: parseInt(snoozeInput.value, 10),

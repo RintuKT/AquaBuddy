@@ -10,6 +10,7 @@ let reminderTimer = null;
 let nextAlarmTimestamp = null;
 
 const DEFAULT_SETTINGS = {
+  characterName: 'Leo & Fox',
   intervalMinutes: 30,
   snoozeMinutes: 10,
   dailyGoal: 8,
@@ -201,6 +202,9 @@ function createTray() {
 function updateTrayMenu() {
   if (!tray) return;
 
+  const charName = appData.settings.characterName || 'Leo & Fox';
+  tray.setToolTip(`AquaBuddy - ${charName} Hydration Reminder`);
+
   const todayKey = getTodayDateKey();
   if (appData.stats.date !== todayKey) {
     appData.stats = { date: todayKey, count: 0, history: [] };
@@ -212,7 +216,7 @@ function updateTrayMenu() {
     : appData.settings.intervalMinutes;
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: '💧 AquaBuddy Water Reminder', enabled: false },
+    { label: `💧 ${charName} Water Reminder`, enabled: false },
     { label: `⏱️ Next reminder in: ~${remainingMins} min`, enabled: false },
     { label: `📊 Today: ${appData.stats.count} / ${appData.settings.dailyGoal} glasses`, enabled: false },
     { type: 'separator' },

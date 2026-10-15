@@ -87,6 +87,10 @@ function startWalkingSequence(data) {
   if (successGapText) successGapText.textContent = `${currentIntervalMinutes} minutes`;
   if (snoozeGapText) snoozeGapText.textContent = `${currentSnoozeMinutes} minutes`;
 
+  const charName = settings.characterName || 'Leo & Fox';
+  const charNameEl = document.getElementById('charNameDisplay');
+  if (charNameEl) charNameEl.textContent = charName;
+
   const scale = Math.min(1.4, Math.max(0.8, settings.characterScale || 1.4));
   document.documentElement.style.setProperty('--mascot-scale', scale);
 

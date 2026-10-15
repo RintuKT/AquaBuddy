@@ -1,6 +1,6 @@
 {
   "name": "aquabuddy-water-reminder",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Cross-platform desktop water reminder app for Mac & Windows with an animated walking mascot character and interactive water tracker.",
   "main": "main.js",
   "scripts": {

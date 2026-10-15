@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsToggle = document.getElementById('settingsToggle');
   const settingsBody = document.getElementById('settingsBody');
   const settingsChevron = document.getElementById('settingsChevron');
+  const charNameInput = document.getElementById('charNameInput');
   const intervalSelect = document.getElementById('intervalSelect');
   const snoozeSelect = document.getElementById('snoozeSelect');
   const goalInput = document.getElementById('goalInput');
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateStatsUI(stats.count, settings.dailyGoal);
 
       // Update Settings Form values
+      if (charNameInput) charNameInput.value = settings.characterName || 'Leo & Fox';
       intervalSelect.value = String(settings.intervalMinutes || 30);
       snoozeSelect.value = String(settings.snoozeMinutes || 10);
       goalInput.value = String(settings.dailyGoal || 8);
@@ -119,6 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save Settings
   btnSaveSettings.addEventListener('click', () => {
     const updated = {
+      characterName: (charNameInput ? charNameInput.value.trim() : '') || 'Leo & Fox',
       intervalMinutes: parseInt(intervalSelect.value, 10),
       snoozeMinutes: parseInt(snoozeSelect.value, 10),
       dailyGoal: parseInt(goalInput.value, 10) || 8,

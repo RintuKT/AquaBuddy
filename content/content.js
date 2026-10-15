@@ -84,6 +84,7 @@
 
     const intervalMin = customSettings?.intervalMinutes || 30;
     const snoozeMin = customSettings?.snoozeMinutes || 10;
+    const charName = customSettings?.characterName || 'Leo & Fox';
 
     // Create host container with Shadow DOM
     currentHost = document.createElement('div');
@@ -118,7 +119,7 @@
           <div class="toast-header">
             <span class="water-icon-badge">💧</span>
             <div class="toast-title-box">
-              <h4 class="toast-title">Leo & Fox</h4>
+              <h4 class="toast-title">${charName}</h4>
               <p class="toast-subtitle">Hydration Reminder</p>
             </div>
           </div>
