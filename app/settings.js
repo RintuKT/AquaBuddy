@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (walkIntervalInput) walkIntervalInput.value = String(settings.walkIntervalMinutes || 45);
     if (walkGoalInput) walkGoalInput.value = String(settings.dailyWalkGoal || 4);
     if (walkReminderCheck) walkReminderCheck.checked = settings.walkReminderEnabled !== false;
-    if (cameraCheck) cameraCheck.checked = settings.cameraCheckEnabled !== false;
+    if (cameraCheck) cameraCheck.checked = settings.focusPauseEnabled !== false && settings.cameraCheckEnabled !== false;
 
     soundCheck.checked = settings.soundEnabled !== false;
     if (autoStartCheck) {
@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       walkIntervalMinutes: walkIntervalInput ? (parseInt(walkIntervalInput.value, 10) || 45) : 45,
       dailyWalkGoal: walkGoalInput ? (parseInt(walkGoalInput.value, 10) || 4) : 4,
       walkReminderEnabled: walkReminderCheck ? walkReminderCheck.checked : true,
+      focusPauseEnabled: cameraCheck ? cameraCheck.checked : true,
       cameraCheckEnabled: cameraCheck ? cameraCheck.checked : true,
       soundEnabled: soundCheck.checked,
       autoStartOnBoot: autoStartCheck ? autoStartCheck.checked : true

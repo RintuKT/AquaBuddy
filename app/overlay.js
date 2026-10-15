@@ -34,15 +34,12 @@ const btnWalkYesLabel = document.getElementById('btnWalkYesLabel');
 const cameraBadge = document.getElementById('cameraBadge');
 const camStatusText = document.getElementById('camStatusText');
 const camCountdownTag = document.getElementById('camCountdownTag');
-const cameraVideo = document.getElementById('cameraVideo');
-const cameraCanvas = document.getElementById('cameraCanvas');
 
 let soundEnabled = true;
 let currentIntervalMinutes = 30;
 let currentSnoozeMinutes = 10;
 let character3D = null;
 let walkChair3D = null;
-let cameraStream = null;
 let cameraLockTimer = null;
 
 // Sound Synthesizer (Realistic Procedural Audio)
@@ -164,13 +161,12 @@ function playSound(type) {
 }
 
 // ============================================================================
-// CAMERA FACE & ATTENTION DETECTOR (2-Second Lock)
+// ATTENTION LOCK (2-Second Focus Countdown - No Camera Needed)
 // ============================================================================
 function startCameraAttentionLock(onUnlock) {
   if (cameraLockTimer) clearInterval(cameraLockTimer);
 
   let remainingMs = 2000;
-  let faceDetected = false;
 
   // Lock buttons initially
   btnWalkYes.classList.add('is-locked');
@@ -178,59 +174,17 @@ function startCameraAttentionLock(onUnlock) {
   btnWalkNo.classList.add('is-locked');
   btnWalkNo.disabled = true;
 
-  cameraBadge.classList.remove('face-detected');
-  camStatusText.textContent = 'Checking for you...';
-  camCountdownTag.textContent = '2.0s';
-  btnWalkYesLabel.textContent = "Yes, I'll walk! (2s)";
-
-  // Request camera stream to check presence
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { width: 160, height: 120, facingMode: 'user' } })
-      .then((stream) => {
-        cameraStream = stream;
-        cameraVideo.srcObject = stream;
-        cameraVideo.play().then(() => {
-          // Analyze frame
-          checkCameraFace();
-        }).catch(() => {});
-      })
-      .catch(() => {
-        camStatusText.textContent = 'Attention lock active';
-      });
-  }
-
-  function checkCameraFace() {
-    if (!cameraStream || !cameraCanvas) return;
-    try {
-      const ctx = cameraCanvas.getContext('2d');
-      if (ctx && cameraVideo.videoWidth > 0) {
-        ctx.drawImage(cameraVideo, 0, 0, 80, 60);
-        const imgData = ctx.getImageData(0, 0, 80, 60);
-        let totalBrightness = 0;
-        const d = imgData.data;
-        for (let i = 0; i < d.length; i += 4) {
-          totalBrightness += (d[i] + d[i + 1] + d[i + 2]) / 3;
-        }
-        const avgBrightness = totalBrightness / (d.length / 4);
-        if (avgBrightness > 25 && avgBrightness < 240) {
-          faceDetected = true;
-          cameraBadge.classList.add('face-detected');
-          camStatusText.textContent = '👀 Face detected! Eyes on screen';
-        }
-      }
-    } catch (e) {}
-  }
+  if (cameraBadge) cameraBadge.classList.remove('face-detected');
+  if (camStatusText) camStatusText.textContent = 'Stretch & Take a Walk';
+  if (camCountdownTag) camCountdownTag.textContent = '2.0s';
+  if (btnWalkYesLabel) btnWalkYesLabel.textContent = "Yes, I'll walk! (2s)";
 
   // 100ms interval countdown
   cameraLockTimer = setInterval(() => {
     remainingMs -= 100;
     const sec = Math.max(0, (remainingMs / 1000)).toFixed(1);
-    camCountdownTag.textContent = `${sec}s`;
-    btnWalkYesLabel.textContent = `Yes, I'll walk! (${Math.ceil(remainingMs / 1000)}s)`;
-
-    if (cameraStream && !faceDetected) {
-      checkCameraFace();
-    }
+    if (camCountdownTag) camCountdownTag.textContent = `${sec}s`;
+    if (btnWalkYesLabel) btnWalkYesLabel.textContent = `Yes, I'll walk! (${Math.ceil(remainingMs / 1000)}s)`;
 
     if (remainingMs <= 0) {
       clearInterval(cameraLockTimer);
@@ -242,12 +196,10 @@ function startCameraAttentionLock(onUnlock) {
       btnWalkNo.classList.remove('is-locked');
       btnWalkNo.disabled = false;
 
-      btnWalkYesLabel.textContent = "Yes, I'll take a walk!";
-      camCountdownTag.textContent = '✓ Ready';
+      if (btnWalkYesLabel) btnWalkYesLabel.textContent = "Yes, I'll take a walk!";
+      if (camCountdownTag) camCountdownTag.textContent = '✓ Ready';
+      if (cameraBadge) cameraBadge.classList.add('face-detected');
       playSound('unlock');
-
-      // Stop camera stream to conserve power
-      stopCameraStream();
 
       if (typeof onUnlock === 'function') {
         onUnlock();
@@ -257,9 +209,9 @@ function startCameraAttentionLock(onUnlock) {
 }
 
 function stopCameraStream() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
+  if (cameraLockTimer) {
+    clearInterval(cameraLockTimer);
+    cameraLockTimer = null;
   }
 }
 
@@ -404,12 +356,14 @@ function startWalkReminderSequence(data) {
     : (window.AquaBuddy3DCharacter?.WalkChair || window.AquaBuddy3DCharacter?.AquaBuddy3DWalkChair);
 
   if (WalkEngine && mascot3DBoxWalk) {
-    const startOffset = Math.max(500, Math.round(window.innerWidth * 0.45));
+    const screenW = window.innerWidth || screen.width || 1440;
+    const startOffset = Math.max(1300, Math.round(screenW * 0.5 + 650));
     walkChair3D = new WalkEngine({
       container: mascot3DBoxWalk,
       width: Math.round(240 * scale),
       height: Math.round(280 * scale),
       startX: startOffset,
+      endX: startOffset,
       targetX: 0,
       onSeated: () => {
         // Chair placed down & mascot is seated!
@@ -417,8 +371,13 @@ function startWalkReminderSequence(data) {
         playSound('pop');
         walkSpeechToast.classList.add('show-toast');
 
-        // Activate 2-second camera attention lock
+        // Activate 2-second attention lock
         startCameraAttentionLock();
+      },
+      onWalkOutStart: () => {
+        // Toast smoothly fades away as Leo starts walking off
+        walkSpeechToast.classList.remove('show-toast');
+        walkSpeechToast.classList.add('hide-toast');
       },
       onScreenImpact: () => {
         // Chair hits user screen!
@@ -449,11 +408,8 @@ btnWalkYes.addEventListener('click', () => {
 
   if (walkChair3D) {
     walkChair3D.triggerCelebrateWalk(() => {
-      walkSpeechToast.classList.remove('show-toast');
-      walkSpeechToast.classList.add('hide-toast');
-      setTimeout(() => {
-        if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
-      }, 500);
+      // Called when Leo has walked completely off-screen past the right edge!
+      if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
     });
   }
 });
@@ -472,11 +428,8 @@ btnWalkNo.addEventListener('click', () => {
 
   if (walkChair3D) {
     walkChair3D.triggerThrowChair(() => {
-      walkSpeechToast.classList.remove('show-toast');
-      walkSpeechToast.classList.add('hide-toast');
-      setTimeout(() => {
-        if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
-      }, 500);
+      // Called when Leo has stomped completely off-screen past the right edge!
+      if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
     });
   }
 });

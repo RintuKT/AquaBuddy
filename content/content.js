@@ -329,7 +329,7 @@
 
           <div class="camera-pill" id="camPill">
             <span class="cam-dot-pulse"></span>
-            <span id="camText">Checking for you...</span>
+            <span id="camText">Stretch & Take a Walk</span>
             <span class="cam-timer" id="camTimerTag">2.0s</span>
           </div>
 
@@ -391,6 +391,8 @@
     const walkSuccessState = shadowRoot.getElementById('walkSuccessState');
     const walkThrowState = shadowRoot.getElementById('walkThrowState');
 
+    const screenW = window.innerWidth || 1440;
+    const startOffset = Math.max(1300, Math.round(screenW * 0.5 + 650));
     const WalkEngine = typeof window.AquaBuddy3DWalkChair === 'function'
       ? window.AquaBuddy3DWalkChair
       : (window.AquaBuddy3DCharacter?.WalkChair || window.AquaBuddy3DCharacter?.AquaBuddy3DWalkChair);
@@ -399,12 +401,17 @@
         container: mascot3DBoxWalk,
         width: 230,
         height: 270,
-        startX: Math.max(450, Math.round(window.innerWidth * 0.4)),
+        startX: startOffset,
+        endX: startOffset,
         targetX: 0,
         onSeated: () => {
           playSound('pop');
           walkToastCard.classList.add('show-toast');
           startLockCountdown();
+        },
+        onWalkOutStart: () => {
+          walkToastCard.classList.remove('show-toast');
+          walkToastCard.classList.add('hide-toast');
         },
         onScreenImpact: () => {
           document.body.classList.remove('aquabuddy-screen-shake');
@@ -431,7 +438,7 @@
           btnWalkNo.disabled = false;
           if (btnWalkYesText) btnWalkYesText.textContent = "Yes, I'll take a walk!";
           if (camTimerTag) camTimerTag.textContent = '✓ Ready';
-          if (camText) camText.textContent = '👀 Face detected! Ready';
+          if (camText) camText.textContent = '✓ Ready to walk!';
           if (camPill) camPill.style.background = '#dcfce7';
         }
       }, 100);
@@ -440,12 +447,10 @@
     function closeWalkOverlay() {
       walkToastCard.classList.remove('show-toast');
       walkToastCard.classList.add('hide-toast');
-      setTimeout(() => {
-        if (currentHost && document.body.contains(currentHost)) {
-          currentHost.remove();
-          currentHost = null;
-        }
-      }, 2600);
+      if (currentHost && document.body.contains(currentHost)) {
+        currentHost.remove();
+        currentHost = null;
+      }
     }
 
     btnWalkYes.addEventListener('click', () => {
@@ -482,7 +487,16 @@
     });
 
     walkCloseBtn.addEventListener('click', () => {
-      closeWalkOverlay();
+      chrome.runtime.sendMessage({ action: 'REMIND_WALK_LATER' });
+      walkToastCard.classList.remove('show-toast');
+      walkToastCard.classList.add('hide-toast');
+      if (character3D && character3D.walkOutToRight) {
+        character3D.walkOutToRight(() => {
+          closeWalkOverlay();
+        });
+      } else {
+        closeWalkOverlay();
+      }
     });
   }
 
@@ -952,58 +966,68 @@
       }
 
       .walk-toast-card {
-        border-color: rgba(245, 158, 11, 0.45);
-        box-shadow: 0 16px 36px -4px rgba(245, 158, 11, 0.28);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        box-shadow: 0 24px 52px -6px rgba(180, 83, 9, 0.22), 0 8px 18px -4px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+        border-radius: 22px;
+        padding: 20px 24px;
+        backdrop-filter: blur(28px) saturate(180%);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
       }
 
       .camera-pill {
         display: flex;
         align-items: center;
-        gap: 8px;
-        background: #fef3c7;
-        border: 1px solid #fde68a;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 11.5px;
-        font-weight: 600;
+        gap: 9px;
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.92) 0%, rgba(253, 230, 138, 0.78) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
         color: #92400e;
-        margin-bottom: 8px;
-        transition: background 0.3s ease;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+        transition: all 0.3s ease;
       }
 
       .cam-dot-pulse {
-        width: 7px;
-        height: 7px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #f59e0b;
+        box-shadow: 0 0 8px #f59e0b;
         animation: camPulse 1s infinite alternate;
       }
 
       @keyframes camPulse {
-        0% { opacity: 0.5; transform: scale(0.8); }
-        100% { opacity: 1; transform: scale(1.2); }
+        0% { opacity: 0.6; transform: scale(0.85); }
+        100% { opacity: 1; transform: scale(1.3); }
       }
 
       .cam-timer {
         margin-left: auto;
-        background: #d97706;
+        background: #f59e0b;
         color: white;
-        padding: 1px 6px;
-        border-radius: 8px;
-        font-size: 10.5px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
         font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        box-shadow: 0 1px 4px rgba(245, 158, 11, 0.35);
       }
 
       .btn.is-locked {
-        opacity: 0.5;
+        opacity: 0.55;
         cursor: not-allowed;
-        filter: grayscale(0.4);
+        filter: grayscale(0.25);
         transform: none !important;
+        box-shadow: none !important;
       }
 
       @keyframes angryShake {
         0% { transform: rotate(-5deg); }
-        50% { transform: rotate(5deg) scale(1.1); }
+        50% { transform: rotate(5deg) scale(1.15); }
         100% { transform: rotate(-5deg); }
       }
     `;

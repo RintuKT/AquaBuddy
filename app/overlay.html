@@ -11,10 +11,6 @@
     <!-- Screen Impact & Shatter Shake Layer (for chair throw) -->
     <div class="screen-impact-overlay" id="screenImpactOverlay"></div>
 
-    <!-- Hidden Camera Analysis Elements -->
-    <video id="cameraVideo" autoplay playsinline muted style="display:none;"></video>
-    <canvas id="cameraCanvas" width="80" height="60" style="display:none;"></canvas>
-
     <!-- 1. Water Reminder Actor Unit (Left Entry with Water Bottle) -->
     <div class="actor-unit" id="actorUnit">
       
@@ -100,10 +96,10 @@
             </div>
           </div>
 
-          <!-- Camera Face Attention Indicator (Locks 2 seconds) -->
+          <!-- Focus Attention Timer (2-Second Countdown) -->
           <div class="camera-badge" id="cameraBadge">
             <span class="cam-dot" id="camDot"></span>
-            <span class="cam-text" id="camStatusText">Checking for you...</span>
+            <span class="cam-text" id="camStatusText">Stretch & Take a Walk</span>
             <span class="countdown-tag" id="camCountdownTag">2.0s</span>
           </div>
 
@@ -152,7 +148,6 @@
 
   </div>
 
-  <script src="../assets/three.min.js"></script>
   <script src="../assets/aquabuddy_3d_character.js"></script>
   <script src="overlay.js"></script>
 </body>

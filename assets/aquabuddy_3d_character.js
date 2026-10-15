@@ -18,18 +18,19 @@
 
   // Helper to resolve asset paths across Extension, Electron, and Standalone Demo
   function getAssetUrl(filename) {
+    const webpFile = filename.replace(/\.(png|jpg)$/, '.webp');
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
       try {
-        return chrome.runtime.getURL('assets/' + filename);
+        return chrome.runtime.getURL('assets/' + webpFile);
       } catch (e) {}
     }
     if (typeof window !== 'undefined' && window.location) {
       const p = window.location.pathname;
       if (p.includes('/app/') || p.includes('\\app\\')) {
-        return '../assets/' + filename;
+        return '../assets/' + webpFile;
       }
     }
-    return 'assets/' + filename;
+    return 'assets/' + webpFile;
   }
 
   function getCharacterStyles() {
@@ -636,16 +637,21 @@
       this.height = options.height || 280;
       this.onSeated = options.onSeated || null;
       this.onScreenImpact = options.onScreenImpact || null;
+      this.onWalkOutStart = options.onWalkOutStart || null;
 
-      // Start from off-screen right, walk to center
-      this.travelStartX = options.startX || 600;
-      this.travelTargetX = options.targetX || 0;
+      // Start from truly off-screen right, walk to center
+      const screenW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1440;
+      // Screen center to right edge is W/2. Adding 650px guarantees Leo + chair + Fox tail start completely off-screen.
+      const trueOffscreenRight = Math.max(1300, Math.round(screenW * 0.5 + 650));
+      this.travelStartX = (options.startX !== undefined) ? options.startX : trueOffscreenRight;
+      this.travelEndX = (options.endX !== undefined) ? options.endX : trueOffscreenRight;
+      this.travelTargetX = (options.targetX !== undefined) ? options.targetX : 0;
       this.currentX = this.travelStartX;
 
       this.state = 'WALK_IN_RIGHT';
       this.walkStartTime = performance.now();
-      this.walkDuration = 3200; // 3.2s smooth walk from right
-      this.stepFrequency = 2.4;
+      this.walkDuration = 3400; // 3.4s steady, confident masculine stride
+      this.stepFrequency = 2.05; // 2.05 Hz = confident, athletic stride
       this.animId = null;
       this.isDestroyed = false;
 
@@ -674,15 +680,16 @@
       this.kinematicsCarrier = document.createElement('div');
       this.kinematicsCarrier.className = 'ab-kinematics-carrier';
 
-      // Pivot Layer (facing LEFT during walk-in)
+      // Pivot Layer (facing LEFT during walk-in from the right)
       this.pivotLayer = document.createElement('div');
       this.pivotLayer.className = 'ab-pivot-layer';
-      this.pivotLayer.style.transform = 'scaleX(1)';
+      this.pivotLayer.style.transform = 'scaleX(-1)';
 
-      // Ground Shadow
+      // Ground Shadow (Athletic, grounded contact shadow)
       this.groundShadow = document.createElement('div');
       this.groundShadow.className = 'ab-ground-shadow';
-      this.groundShadow.style.width = '68%';
+      this.groundShadow.style.width = '72%';
+      this.groundShadow.style.height = '18px';
 
       // Poses Stack
       this.poseStack = document.createElement('div');
@@ -690,7 +697,7 @@
 
       const imgStyle = 'position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; object-position:bottom center; pointer-events:none;';
 
-      // 1. Carrying Chair Pose
+      // 1. Carrying Chair Pose (Firm grip, manly stride)
       this.imgCarryChair = document.createElement('img');
       this.imgCarryChair.className = 'ab-pose-img active';
       this.imgCarryChair.style.cssText = imgStyle;
@@ -714,18 +721,27 @@
       this.imgThrowChair.src = getAssetUrl('pixar_throw_chair.png');
       this.imgThrowChair.alt = 'Leo Throwing Chair';
 
-      // 4. Celebrate Pose (Thumbs up & happy)
+      // 4. Celebrate Pose (Stands up and jumps happily with NO water bottle)
       this.imgCelebrate = document.createElement('img');
       this.imgCelebrate.className = 'ab-pose-img';
       this.imgCelebrate.style.cssText = imgStyle;
       this.imgCelebrate.style.opacity = '0';
-      this.imgCelebrate.src = getAssetUrl('pixar_celebrate.png');
-      this.imgCelebrate.alt = 'Leo Celebrating';
+      this.imgCelebrate.src = getAssetUrl('pixar_walk_celebrate.png');
+      this.imgCelebrate.alt = 'Leo Standing Up and Celebrating';
+
+      // 5. Walk Free Pose (Hands swinging naturally, no chair, no bottle)
+      this.imgWalkFree = document.createElement('img');
+      this.imgWalkFree.className = 'ab-pose-img';
+      this.imgWalkFree.style.cssText = imgStyle;
+      this.imgWalkFree.style.opacity = '0';
+      this.imgWalkFree.src = getAssetUrl('pixar_walk_free.png');
+      this.imgWalkFree.alt = 'Leo Walking Freely';
 
       this.poseStack.appendChild(this.imgCarryChair);
       this.poseStack.appendChild(this.imgSitChair);
       this.poseStack.appendChild(this.imgThrowChair);
       this.poseStack.appendChild(this.imgCelebrate);
+      this.poseStack.appendChild(this.imgWalkFree);
 
       // Dedicated 3D Flying Chair (Hurled toward user screen on No)
       this.flyingChair = document.createElement('img');
@@ -761,7 +777,8 @@
         { name: 'carry', el: this.imgCarryChair },
         { name: 'sit', el: this.imgSitChair },
         { name: 'throw', el: this.imgThrowChair },
-        { name: 'celebrate', el: this.imgCelebrate }
+        { name: 'celebrate', el: this.imgCelebrate },
+        { name: 'walk_free', el: this.imgWalkFree }
       ];
 
       poses.forEach(p => {
@@ -789,19 +806,31 @@
         const elapsed = now - this.walkStartTime;
         const progress = Math.min(1.0, elapsed / this.walkDuration);
 
-        // Smooth human deceleration curve
-        const easeProgress = 1 - Math.pow(1 - progress, 2.8);
+        // Smooth human deceleration curve (ease-out cubic with settle)
+        const easeProgress = 1 - Math.pow(1 - progress, 2.6);
         this.currentX = this.travelStartX + (this.travelTargetX - this.travelStartX) * easeProgress;
         this.actorCarrier.style.transform = `translateX(${this.currentX}px)`;
 
-        // Gait bounce & tilt
+        // Manly biomechanical gait kinematics:
+        // Confident, heavy step cadence (~2.05 Hz)
         const gaitPhase = (elapsed / 1000) * this.stepFrequency * Math.PI * 2;
-        const dampener = Math.max(0.2, 1 - progress * 0.8);
-        const bounceY = Math.abs(Math.sin(gaitPhase)) * 8 * dampener;
-        const tiltDeg = Math.sin(gaitPhase) * 2 * dampener;
+        const dampener = Math.max(0.18, 1 - progress * 0.82);
 
-        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${tiltDeg}deg)`;
-        this.groundShadow.style.transform = `scale(${1.0 + (bounceY / 8) * 0.15}, 1.0)`;
+        // Grounded foot strike: asymmetric plant with inverted pendulum weight transfer
+        const strike = Math.pow(Math.abs(Math.sin(gaitPhase)), 1.35);
+        const bounceY = strike * 8.5 * dampener;
+        // Torso contrapposto & athletic hip sway
+        const sway = Math.sin(gaitPhase) * 1.8 * dampener;
+        // Confident forward lean into the weight of the chair
+        const forwardLean = 1.2 * dampener;
+
+        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${sway - forwardLean}deg)`;
+
+        // Ground shadow responds to foot impact force
+        const shadowScaleX = 1.0 + (strike * 0.16);
+        const shadowScaleY = 1.0 - (strike * 0.08);
+        this.groundShadow.style.transform = `scale(${shadowScaleX}, ${shadowScaleY})`;
+        this.groundShadow.style.opacity = `${0.60 + strike * 0.18}`;
 
         if (progress >= 1.0) {
           this.state = 'TRANSITION_SEATED';
@@ -811,15 +840,18 @@
         const elapsed = now - this.walkOutStartTime;
         const progress = Math.min(1.0, elapsed / this.walkOutDuration);
 
-        const easeProgress = Math.pow(progress, 1.4);
-        this.currentX = this.travelTargetX + (this.travelStartX - this.travelTargetX) * easeProgress;
+        // Smooth human acceleration out to right edge
+        const easeProgress = Math.pow(progress, 1.25);
+        this.currentX = this.travelTargetX + (this.travelEndX - this.travelTargetX) * easeProgress;
         this.actorCarrier.style.transform = `translateX(${this.currentX}px)`;
 
         const gaitPhase = (elapsed / 1000) * this.stepFrequency * Math.PI * 2;
-        const bounceY = Math.abs(Math.sin(gaitPhase)) * 8;
-        const tiltDeg = Math.sin(gaitPhase) * 2;
+        const strike = Math.pow(Math.abs(Math.sin(gaitPhase)), 1.35);
+        const bounceY = strike * 8.5;
+        const sway = Math.sin(gaitPhase) * 1.8;
 
-        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${tiltDeg}deg)`;
+        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${sway}deg)`;
+        this.groundShadow.style.transform = `scale(${1.0 + strike * 0.15}, 1.0)`;
 
         if (progress >= 1.0) {
           this.state = 'OFFSCREEN';
@@ -832,18 +864,18 @@
     }
 
     transitionToSeated() {
-      // Chair placed down gently, character sits down comfortably
-      this.kinematicsCarrier.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
-      this.kinematicsCarrier.style.transform = 'translateY(12px) scale(1.04, 0.94)';
+      // Chair placed down firmly, character sits down comfortably
+      this.kinematicsCarrier.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.4, 1.2)';
+      this.kinematicsCarrier.style.transform = 'translateY(14px) scale(1.04, 0.94)';
 
       setTimeout(() => {
-        // Crossfade to sitting in chair pose
+        // Crossfade to sitting in chair pose (facing front towards user)
         this.setPose('sit');
-        this.pivotLayer.style.transform = 'perspective(800px) rotateY(0deg) scale(1.0)';
+        this.pivotLayer.style.transform = 'perspective(900px) rotateY(0deg) scale(1.0)';
         this.kinematicsCarrier.style.transition = 'transform 0.4s ease-out';
         this.kinematicsCarrier.style.transform = 'translateY(0) scale(1, 1)';
-        this.groundShadow.style.transform = 'scale(1.2, 1.1)';
-        this.groundShadow.style.opacity = '0.7';
+        this.groundShadow.style.transform = 'scale(1.22, 1.1)';
+        this.groundShadow.style.opacity = '0.75';
 
         // Organic breathing while seated
         this.kinematicsCarrier.classList.add('ab-breathing');
@@ -863,27 +895,28 @@
       // Voice: "Good job! Stay healthy, make it a routine!"
       speakCharacter("Good job! Stay healthy, make it a routine!");
 
-      // Stand up and celebrate
+      // Stand up from chair and jump happily (NO water bottle!)
       this.setPose('celebrate');
+      this.pivotLayer.style.transform = 'scaleX(1)';
       this.fxSparkles.classList.add('active');
 
-      // Joyful celebratory jump
+      // Joyful celebratory jump (crouch windup -> high jump in air -> land)
       this.kinematicsCarrier.style.transition = 'transform 0.15s ease-in';
-      this.kinematicsCarrier.style.transform = 'translateY(8px) scale(1.05, 0.95)';
+      this.kinematicsCarrier.style.transform = 'translateY(10px) scale(1.05, 0.95)';
 
       setTimeout(() => {
-        this.kinematicsCarrier.style.transition = 'transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
-        this.kinematicsCarrier.style.transform = 'translateY(-50px) scale(0.96, 1.06)';
+        this.kinematicsCarrier.style.transition = 'transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+        this.kinematicsCarrier.style.transform = 'translateY(-65px) scale(0.96, 1.08)';
 
         setTimeout(() => {
-          this.kinematicsCarrier.style.transition = 'transform 0.25s ease-out';
+          this.kinematicsCarrier.style.transition = 'transform 0.28s ease-out';
           this.kinematicsCarrier.style.transform = 'translateY(0) scale(1, 1)';
 
-          // After celebration: turn and walk out to right
+          // After celebration: walk out cheerfully to the right!
           setTimeout(() => {
             this.walkOutToRight(callback);
           }, 1200);
-        }, 400);
+        }, 450);
       }, 150);
     }
 
@@ -938,13 +971,19 @@
       this.fxSparkles.classList.remove('active');
       this.kinematicsCarrier.classList.remove('ab-breathing');
 
-      // Face right (scaleX -1 for carry/walk pose)
-      this.setPose('carry');
-      this.pivotLayer.style.transform = 'scaleX(-1)';
+      // Trigger toast dismissal as exit walk begins
+      if (typeof this.onWalkOutStart === 'function') {
+        this.onWalkOutStart();
+      }
+
+      // Leo walks out to the right freely without chair or bottle!
+      // pixar_walk_free.png naturally faces RIGHT, so scaleX(1) faces the travel direction!
+      this.setPose('walk_free');
+      this.pivotLayer.style.transform = 'scaleX(1)';
 
       this.walkOutStartTime = performance.now();
-      this.walkOutDuration = isAngry ? 1800 : 2500; // Angry stomps faster
-      this.stepFrequency = isAngry ? 3.4 : 2.4;
+      this.walkOutDuration = isAngry ? 2500 : 3400; // Stride fully across to off-screen right
+      this.stepFrequency = isAngry ? 2.9 : 2.05;
     }
 
     destroy() {

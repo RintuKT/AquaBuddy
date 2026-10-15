@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AquaBuddy - Water Drink Reminder",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "An adorable animated buddy that slides from your screen to remind you to drink water with interactive snooze and tracking.",
   "permissions": [
     "alarms",
@@ -29,7 +29,6 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "assets/three.min.js",
         "assets/aquabuddy_3d_character.js",
         "content/content.js"
       ],

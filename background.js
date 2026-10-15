@@ -88,7 +88,7 @@ async function triggerReminderInTabs() {
             try {
               await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                files: ['assets/three.min.js', 'assets/aquabuddy_3d_character.js', 'content/content.js']
+                files: ['assets/aquabuddy_3d_character.js', 'content/content.js']
               });
               await chrome.scripting.insertCSS({
                 target: { tabId: tab.id },
@@ -143,7 +143,7 @@ async function triggerWalkReminderInTabs() {
       try {
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
-          files: ['assets/three.min.js', 'assets/aquabuddy_3d_character.js', 'content/content.js']
+          files: ['assets/aquabuddy_3d_character.js', 'content/content.js']
         });
         await chrome.scripting.insertCSS({
           target: { tabId: tab.id },

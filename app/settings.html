@@ -3,168 +3,204 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AquaBuddy - Settings & Character Size</title>
+  <title>AquaBuddy Preferences & Settings</title>
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
   <div class="settings-container">
-    <!-- Header -->
+    
+    <!-- Top Header -->
     <header class="app-header">
       <div class="brand">
         <span class="logo-emoji">💧</span>
         <div>
-          <h2>AquaBuddy</h2>
-          <p class="subtitle">Desktop Water Reminder & Mascot</p>
+          <div class="brand-title-wrap">
+            <h2>AquaBuddy</h2>
+            <span class="version-badge">v1.0.9</span>
+          </div>
+          <p class="subtitle">Desktop Mascot & Routine Reminders</p>
         </div>
       </div>
-      <div style="display: flex; gap: 8px;">
-        <button class="btn-test-action" id="btnTestWaterTop" title="Test water reminder animation">
-          <span>💧 Water</span>
+      <div class="header-actions">
+        <button class="btn-test-action btn-test-water" id="btnTestWaterTop" title="Test water reminder animation">
+          <span>💧 Test Water</span>
         </button>
-        <button class="btn-test-action" id="btnTestWalkChairTop" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" title="Test take a walk reminder with chair">
-          <span>🪑 Walk & Chair</span>
+        <button class="btn-test-action btn-test-walk" id="btnTestWalkChairTop" title="Test take a walk reminder with chair">
+          <span>🪑 Test Walk</span>
         </button>
       </div>
     </header>
 
-    <!-- Character Size & Appearance Card -->
-    <section class="card size-preview-card">
-      <div class="card-header">
-        <span class="card-title">🎭 Character Size & Appearance</span>
-        <span class="scale-badge" id="scaleBadge">Scale: 1.4x (Large)</span>
-      </div>
+    <div class="scroll-body">
 
-      <!-- Live Mascot Preview Window -->
-      <div class="mascot-preview-box">
-        <div class="preview-stage" id="previewStage">
-          <!-- Live Preview of animated 3D mascot -->
-          <div class="preview-mascot" id="previewMascot">
-            <img src="../assets/norm_stand.png" class="preview-character-img" alt="AquaBuddy Preview">
+      <!-- Character Size & Appearance Card -->
+      <section class="card size-preview-card">
+        <div class="card-header">
+          <span class="card-title">🎭 Character Appearance & Size</span>
+          <span class="scale-badge" id="scaleBadge">Scale: 1.4x (Max Large)</span>
+        </div>
+
+        <!-- Live Mascot Preview Window -->
+        <div class="mascot-preview-box">
+          <div class="preview-stage" id="previewStage">
+            <div class="preview-mascot" id="previewMascot">
+              <img src="../assets/pixar_stand.png" class="preview-character-img" alt="AquaBuddy Preview">
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Character Name Input -->
-      <div class="form-group" style="margin-top: 4px;">
-        <label for="charNameInput">Character Name</label>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <input type="text" id="charNameInput" class="input-box" placeholder="e.g. Leo & Fox" value="Leo & Fox" maxlength="24" style="flex: 1; font-weight: 700; color: #38bdf8;">
-          <button type="button" class="btn-preset" id="btnResetName" style="padding: 9px 12px; font-size: 12px; min-width: 60px;" title="Reset to default name">Reset</button>
-        </div>
-      </div>
-
-      <!-- Size Preset Buttons -->
-      <div class="size-presets">
-        <button class="btn-preset" data-scale="0.9" data-name="Small">Small (0.9x)</button>
-        <button class="btn-preset" data-scale="1.1" data-name="Medium">Medium (1.1x)</button>
-        <button class="btn-preset" data-scale="1.25" data-name="Standard">Standard (1.25x)</button>
-        <button class="btn-preset active" data-scale="1.4" data-name="Max Large">Max Large (1.4x)</button>
-      </div>
-
-      <!-- Fine Scale Slider -->
-      <div class="slider-group">
-        <label for="scaleSlider">Custom Character Scale: <span id="sliderValue">1.4x</span></label>
-        <input type="range" id="scaleSlider" min="0.8" max="1.4" step="0.05" value="1.4">
-        <div class="slider-labels">
-          <span>Compact (0.8x)</span>
-          <span>Medium (1.1x)</span>
-          <span>Max Large (1.4x)</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Hydration Schedule Card -->
-    <section class="card">
-      <h3 class="card-title">💧 Hydration Schedule (Drink Water)</h3>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="intervalInput">Water Interval (Minutes)</label>
-          <input type="number" id="intervalInput" class="input-box" min="1" max="180" value="30">
+        <!-- Character Name Input -->
+        <div class="form-group" style="margin-top: 4px;">
+          <label for="charNameInput">Character Name</label>
+          <div class="name-input-row">
+            <input type="text" id="charNameInput" class="input-box name-input" placeholder="e.g. Leo & Fox" value="Leo & Fox" maxlength="24">
+            <button type="button" class="btn-inline-reset" id="btnResetName" title="Reset to default name">Reset</button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="snoozeInput">Snooze Duration (Minutes)</label>
-          <input type="number" id="snoozeInput" class="input-box" min="1" max="60" value="10">
+        <!-- Size Preset Buttons -->
+        <div class="size-presets">
+          <button type="button" class="btn-preset" data-scale="0.9" data-name="Small">Small (0.9x)</button>
+          <button type="button" class="btn-preset" data-scale="1.1" data-name="Medium">Medium (1.1x)</button>
+          <button type="button" class="btn-preset" data-scale="1.25" data-name="Standard">Standard (1.25x)</button>
+          <button type="button" class="btn-preset active" data-scale="1.4" data-name="Max Large">Max Large (1.4x)</button>
         </div>
 
-        <div class="form-group">
-          <label for="goalInput">Daily Water Goal (Glasses)</label>
-          <input type="number" id="goalInput" class="input-box" min="1" max="25" value="8">
+        <!-- Fine Scale Slider -->
+        <div class="slider-group">
+          <label for="scaleSlider">
+            <span>Custom Mascot Scale</span>
+            <span id="sliderValue" class="slider-val-tag">1.4x</span>
+          </label>
+          <input type="range" id="scaleSlider" min="0.8" max="1.4" step="0.05" value="1.4">
+          <div class="slider-labels">
+            <span>Compact (0.8x)</span>
+            <span>Medium (1.1x)</span>
+            <span>Max Large (1.4x)</span>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Take a Walk & Stretch Schedule Card (New!) -->
-    <section class="card" style="border: 1px solid rgba(245, 158, 11, 0.35);">
-      <div class="card-header">
-        <h3 class="card-title" style="color: #fbbf24;">🚶 Take a Walk Reminder (Chair Mascot)</h3>
-        <span class="scale-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">New 3D Feature</span>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="walkIntervalInput">Walk Interval (Minutes)</label>
-          <input type="number" id="walkIntervalInput" class="input-box" min="1" max="240" value="45">
-        </div>
-
-        <div class="form-group">
-          <label for="walkGoalInput">Daily Walk Goal (Times)</label>
-          <input type="number" id="walkGoalInput" class="input-box" min="1" max="20" value="4">
+      <!-- Hydration Schedule Card -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">💧 Hydration Schedule (Drink Water)</h3>
         </div>
 
-        <div class="form-group toggle-group" style="align-items: center; justify-content: center;">
-          <label for="walkReminderCheck">Enable Walk Reminder</label>
-          <input type="checkbox" id="walkReminderCheck" checked>
-        </div>
-      </div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label for="intervalInput">Interval (Mins)</label>
+            <input type="number" id="intervalInput" class="input-box" min="1" max="180" value="30">
+          </div>
 
-      <div class="form-row" style="margin-top: 8px;">
-        <div class="form-group toggle-group" style="flex: 2;">
-          <label for="cameraCheck">👁️ Camera Attention Lock (2 Seconds)</label>
-          <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Locks Yes/No buttons for 2s so you see the reminder and character</p>
-          <input type="checkbox" id="cameraCheck" checked style="margin-top: 4px;">
-        </div>
+          <div class="form-group">
+            <label for="snoozeInput">Snooze (Mins)</label>
+            <input type="number" id="snoozeInput" class="input-box" min="1" max="60" value="10">
+          </div>
 
-        <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
-          <button type="button" class="btn-preset" id="btnTestWalkChairBottom" style="width: 100%; background: #d97706; color: white; border: none; font-weight: 700; padding: 10px;">
-            🪑 Test Walk Routine
-          </button>
+          <div class="form-group">
+            <label for="goalInput">Daily Goal (Glasses)</label>
+            <input type="number" id="goalInput" class="input-box" min="1" max="25" value="8">
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- System Preferences Card -->
-    <section class="card">
-      <h3 class="card-title">⚙️ System & Audio</h3>
-      <div class="form-row">
-        <div class="form-group toggle-group">
-          <label for="soundCheck">Sound Effects & Speech Synthesis</label>
-          <input type="checkbox" id="soundCheck" checked>
+      <!-- Take a Walk Routine Card -->
+      <section class="card card-walk">
+        <div class="card-header">
+          <h3 class="card-title" style="color: #f59e0b;">🚶 Take a Walk Routine (Chair Mascot)</h3>
+          <span class="feature-badge">New 3D Routine</span>
         </div>
 
-        <div class="form-group toggle-group">
-          <label for="autoStartCheck">Start on Laptop Boot</label>
-          <input type="checkbox" id="autoStartCheck" checked>
-        </div>
-      </div>
-    </section>
+        <!-- Walk Intervals -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="walkIntervalInput">Walk Interval (Minutes)</label>
+            <input type="number" id="walkIntervalInput" class="input-box" min="1" max="240" value="45">
+          </div>
 
-    <!-- Daily Progress Summary -->
-    <section class="card stats-card">
-      <div class="stats-header">
-        <div>
-          <h3 class="card-title">📊 Today's Progress</h3>
-          <p class="stats-counter" id="statsCounter">0 / 8 Glasses Drunk • 0 / 4 Walks Taken</p>
+          <div class="form-group">
+            <label for="walkGoalInput">Daily Walk Goal (Times)</label>
+            <input type="number" id="walkGoalInput" class="input-box" min="1" max="20" value="4">
+          </div>
         </div>
-        <button class="btn-secondary" id="btnResetStats">Reset Count</button>
-      </div>
-    </section>
 
-    <!-- Bottom Actions -->
-    <div class="footer-actions">
-      <button class="btn-primary" id="btnSave">Save Preferences</button>
+        <!-- Toggle Row 1: Enable Walk Reminder -->
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <label for="walkReminderCheck" class="toggle-title">Enable Walk Routine</label>
+            <span class="toggle-desc">Leo enters with a chair reminding you to stand up & walk</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="walkReminderCheck" checked>
+            <span class="slider slider-amber"></span>
+          </label>
+        </div>
+
+        <!-- Toggle Row 2: 2-Second Focus Pause -->
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <label for="cameraCheck" class="toggle-title">⏳ 2-Second Focus Pause</label>
+            <span class="toggle-desc">Briefly pauses action buttons for 2s so you take a stretch break</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cameraCheck" checked>
+            <span class="slider slider-amber"></span>
+          </label>
+        </div>
+
+        <!-- Dedicated Walk Test Action -->
+        <button type="button" class="btn-walk-test" id="btnTestWalkChairBottom">
+          <span>🪑 Test Walk Routine (Chair Mascot)</span>
+        </button>
+      </section>
+
+      <!-- System Preferences Card -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">⚙️ System & Audio</h3>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <label for="soundCheck" class="toggle-title">Sound Effects & Speech Synthesis</label>
+            <span class="toggle-desc">Mascot voice reminders and interactive audio chimes</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="soundCheck" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <label for="autoStartCheck" class="toggle-title">Start on Laptop Boot</label>
+            <span class="toggle-desc">Launch quietly in menu bar / system tray when computer starts</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoStartCheck" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Today's Progress Summary -->
+      <section class="card stats-card">
+        <div class="stats-header">
+          <div>
+            <h3 class="card-title">📊 Today's Progress</h3>
+            <p class="stats-counter" id="statsCounter">0 / 8 Glasses Drunk • 0 / 4 Walks Taken</p>
+          </div>
+          <button type="button" class="btn-reset-stats" id="btnResetStats">Reset Stats</button>
+        </div>
+      </section>
+
     </div>
+
+    <!-- Sticky Bottom Actions -->
+    <footer class="footer-actions">
+      <button type="button" class="btn-primary" id="btnSave">Save Preferences</button>
+    </footer>
 
   </div>
 

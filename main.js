@@ -174,12 +174,13 @@ function openSettingsWindow() {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 480,
-    height: 640,
-    title: 'AquaBuddy Preferences & Character Size',
-    resizable: false,
-    maximizable: false,
-    backgroundColor: '#0f172a',
+    width: 540,
+    height: 740,
+    minWidth: 480,
+    minHeight: 600,
+    title: 'AquaBuddy Preferences & Settings',
+    resizable: true,
+    backgroundColor: '#090d16',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
