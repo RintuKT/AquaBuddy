@@ -88,7 +88,7 @@ async function triggerReminderInTabs() {
             try {
               await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                files: ['content/content.js']
+                files: ['assets/three.min.js', 'assets/aquabuddy_3d_character.js', 'content/content.js']
               });
               await chrome.scripting.insertCSS({
                 target: { tabId: tab.id },
@@ -97,6 +97,7 @@ async function triggerReminderInTabs() {
               setTimeout(() => {
                 chrome.tabs.sendMessage(tab.id, {
                   action: 'SHOW_WATER_REMINDER',
+                  settings: data.settings || {},
                   timestamp: Date.now()
                 }).catch(() => {});
               }, 200);
@@ -132,10 +133,32 @@ async function triggerWalkReminderInTabs() {
     if (!tabs || tabs.length === 0) return;
     const tab = tabs[0];
     const data = await chrome.storage.local.get(['settings']);
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'SHOW_WALK_REMINDER',
-      settings: data.settings || {}
-    });
+    try {
+      await chrome.tabs.sendMessage(tab.id, {
+        action: 'SHOW_WALK_REMINDER',
+        settings: data.settings || {}
+      });
+    } catch (err) {
+      console.warn(`[AquaBuddy] Failed to message tab ${tab.id} for walk reminder, injecting scripts...`, err);
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['assets/three.min.js', 'assets/aquabuddy_3d_character.js', 'content/content.js']
+        });
+        await chrome.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ['content/content.css']
+        });
+        setTimeout(() => {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'SHOW_WALK_REMINDER',
+            settings: data.settings || {}
+          }).catch(() => {});
+        }, 200);
+      } catch (injectErr) {
+        console.warn('[AquaBuddy] Script injection failed for walk reminder:', injectErr);
+      }
+    }
   } catch (error) {
     console.error('[AquaBuddy] Error in triggerWalkReminderInTabs:', error);
   }

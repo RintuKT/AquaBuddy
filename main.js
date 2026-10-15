@@ -301,7 +301,7 @@ function scheduleNextWalkReminder(minutes) {
   }, minutes * 60 * 1000);
 }
 
-function triggerMascotWalk() {
+function sendToOverlay(channel, payload) {
   if (!overlayWindow || overlayWindow.isDestroyed()) {
     createOverlayWindow();
   }
@@ -322,34 +322,33 @@ function triggerMascotWalk() {
   }
 
   overlayWindow.showInactive();
-  overlayWindow.webContents.send('START_MASCOT_WALK', {
+
+  const doSend = () => {
+    try {
+      if (overlayWindow && !overlayWindow.isDestroyed()) {
+        overlayWindow.webContents.send(channel, payload);
+      }
+    } catch (err) {
+      console.error(`[AquaBuddy] Error sending ${channel} to overlay:`, err);
+    }
+  };
+
+  if (overlayWindow.webContents.isLoading()) {
+    overlayWindow.webContents.once('did-finish-load', doSend);
+  } else {
+    doSend();
+  }
+}
+
+function triggerMascotWalk() {
+  sendToOverlay('START_MASCOT_WALK', {
     settings: appData.settings,
     stats: appData.stats
   });
 }
 
 function triggerWalkReminder() {
-  if (!overlayWindow || overlayWindow.isDestroyed()) {
-    createOverlayWindow();
-  }
-
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
-  const overlayHeight = 520;
-  overlayWindow.setBounds({
-    x: 0,
-    y: height - overlayHeight,
-    width: width,
-    height: overlayHeight
-  });
-
-  if (process.platform === 'darwin') {
-    overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
-    overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
-  }
-
-  overlayWindow.showInactive();
-  overlayWindow.webContents.send('START_WALK_REMINDER', {
+  sendToOverlay('START_WALK_REMINDER', {
     settings: appData.settings,
     stats: appData.stats
   });

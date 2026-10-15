@@ -5,12 +5,14 @@
 // Joyful Jumping Celebration with Sparkles, Empathetic Crying with Teardrops, and Organic Breathing.
 
 (function (root, factory) {
+  const lib = factory();
   if (typeof define === 'function' && define.amd) {
-    define([], factory);
+    define([], () => lib);
   } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory();
+    module.exports = lib;
   } else {
-    root.AquaBuddy3DCharacter = factory();
+    root.AquaBuddy3DCharacter = lib;
+    root.AquaBuddy3DWalkChair = lib.WalkChair || lib.AquaBuddy3DWalkChair;
   }
 }(typeof self !== 'undefined' ? self : this, function () {
 
@@ -213,6 +215,25 @@
         60% { transform: translateY(-6px) scale(1.02) rotate(1.2deg); opacity: 1; }
         100% { transform: translateY(0) scale(1.0) rotate(0deg); opacity: 1; }
       }
+
+      /* Walk & Chair Stage and Flying Chair Styles */
+      .ab-chair-stage {
+        perspective: 1200px;
+      }
+
+      .ab-flying-chair {
+        position: absolute;
+        bottom: 18px;
+        left: 50%;
+        width: 160px;
+        height: 180px;
+        object-fit: contain;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 99;
+        transform-origin: center center;
+        will-change: transform, opacity;
+      }
     `;
   }
 
@@ -283,6 +304,7 @@
       this.imgWalk = document.createElement('img');
       this.imgWalk.className = 'ab-pose-img active';
       this.imgWalk.style.cssText = imgBaseStyle;
+      this.imgWalk.style.opacity = '1';
       this.imgWalk.src = getAssetUrl('pixar_walk.png');
       this.imgWalk.alt = 'Leo Walking';
 
@@ -290,6 +312,7 @@
       this.imgStand = document.createElement('img');
       this.imgStand.className = 'ab-pose-img';
       this.imgStand.style.cssText = imgBaseStyle;
+      this.imgStand.style.opacity = '0';
       this.imgStand.src = getAssetUrl('pixar_stand.png');
       this.imgStand.alt = 'Leo Standing';
 
@@ -297,6 +320,7 @@
       this.imgCelebrate = document.createElement('img');
       this.imgCelebrate.className = 'ab-pose-img';
       this.imgCelebrate.style.cssText = imgBaseStyle;
+      this.imgCelebrate.style.opacity = '0';
       this.imgCelebrate.src = getAssetUrl('pixar_celebrate.png');
       this.imgCelebrate.alt = 'Leo Celebrating';
 
@@ -304,6 +328,7 @@
       this.imgCrying = document.createElement('img');
       this.imgCrying.className = 'ab-pose-img';
       this.imgCrying.style.cssText = imgBaseStyle;
+      this.imgCrying.style.opacity = '0';
       this.imgCrying.src = getAssetUrl('pixar_crying.png');
       this.imgCrying.alt = 'Leo Crying';
 
@@ -356,8 +381,10 @@
       poses.forEach(p => {
         if (p.name === poseName) {
           p.el.classList.add('active');
+          p.el.style.opacity = '1';
         } else {
           p.el.classList.remove('active');
+          p.el.style.opacity = '0';
         }
       });
     }
@@ -633,6 +660,11 @@
       this.stage = document.createElement('div');
       this.stage.className = 'ab-stage ab-chair-stage';
 
+      // Inject styles directly into stage so it works inside Shadow DOM, regular DOM, or Electron
+      const styleEl = document.createElement('style');
+      styleEl.textContent = getCharacterStyles();
+      this.stage.appendChild(styleEl);
+
       // Carrier
       this.actorCarrier = document.createElement('div');
       this.actorCarrier.className = 'ab-actor-carrier';
@@ -662,6 +694,7 @@
       this.imgCarryChair = document.createElement('img');
       this.imgCarryChair.className = 'ab-pose-img active';
       this.imgCarryChair.style.cssText = imgStyle;
+      this.imgCarryChair.style.opacity = '1';
       this.imgCarryChair.src = getAssetUrl('pixar_carry_chair.png');
       this.imgCarryChair.alt = 'Leo Carrying Chair';
 
@@ -669,6 +702,7 @@
       this.imgSitChair = document.createElement('img');
       this.imgSitChair.className = 'ab-pose-img';
       this.imgSitChair.style.cssText = imgStyle;
+      this.imgSitChair.style.opacity = '0';
       this.imgSitChair.src = getAssetUrl('pixar_sit_chair.png');
       this.imgSitChair.alt = 'Leo Sitting in Chair';
 
@@ -676,6 +710,7 @@
       this.imgThrowChair = document.createElement('img');
       this.imgThrowChair.className = 'ab-pose-img';
       this.imgThrowChair.style.cssText = imgStyle;
+      this.imgThrowChair.style.opacity = '0';
       this.imgThrowChair.src = getAssetUrl('pixar_throw_chair.png');
       this.imgThrowChair.alt = 'Leo Throwing Chair';
 
@@ -683,6 +718,7 @@
       this.imgCelebrate = document.createElement('img');
       this.imgCelebrate.className = 'ab-pose-img';
       this.imgCelebrate.style.cssText = imgStyle;
+      this.imgCelebrate.style.opacity = '0';
       this.imgCelebrate.src = getAssetUrl('pixar_celebrate.png');
       this.imgCelebrate.alt = 'Leo Celebrating';
 
@@ -731,8 +767,10 @@
       poses.forEach(p => {
         if (p.name === poseName) {
           p.el.classList.add('active');
+          p.el.style.opacity = '1';
         } else {
           p.el.classList.remove('active');
+          p.el.style.opacity = '0';
         }
       });
     }
@@ -923,13 +961,17 @@
 
   // Export both engines
   AquaBuddy3DCharacter.WalkChair = AquaBuddy3DWalkChair;
+  AquaBuddy3DCharacter.AquaBuddy3DWalkChair = AquaBuddy3DWalkChair;
+  AquaBuddy3DCharacter.AquaBuddy3DCharacter = AquaBuddy3DCharacter;
+
   if (typeof window !== 'undefined') {
     window.AquaBuddy3DCharacter = AquaBuddy3DCharacter;
     window.AquaBuddy3DWalkChair = AquaBuddy3DWalkChair;
   }
+  if (typeof globalThis !== 'undefined') {
+    globalThis.AquaBuddy3DCharacter = AquaBuddy3DCharacter;
+    globalThis.AquaBuddy3DWalkChair = AquaBuddy3DWalkChair;
+  }
 
-  return {
-    AquaBuddy3DCharacter,
-    AquaBuddy3DWalkChair
-  };
+  return AquaBuddy3DCharacter;
 }));

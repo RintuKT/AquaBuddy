@@ -177,8 +177,12 @@
     const toastCard = shadowRoot.getElementById('toastCard');
 
     // Instantiate Real 3D Pixar Animated Character
-    if (window.AquaBuddy3DCharacter && mascot3DBox) {
-      character3D = new window.AquaBuddy3DCharacter({
+    const CharEngine = typeof window.AquaBuddy3DCharacter === 'function'
+      ? window.AquaBuddy3DCharacter
+      : window.AquaBuddy3DCharacter?.AquaBuddy3DCharacter;
+
+    if (CharEngine && mascot3DBox) {
+      character3D = new CharEngine({
         container: mascot3DBox,
         width: 200,
         height: 250,
@@ -387,7 +391,9 @@
     const walkSuccessState = shadowRoot.getElementById('walkSuccessState');
     const walkThrowState = shadowRoot.getElementById('walkThrowState');
 
-    const WalkEngine = window.AquaBuddy3DWalkChair || (window.AquaBuddy3DCharacter && window.AquaBuddy3DCharacter.WalkChair);
+    const WalkEngine = typeof window.AquaBuddy3DWalkChair === 'function'
+      ? window.AquaBuddy3DWalkChair
+      : (window.AquaBuddy3DCharacter?.WalkChair || window.AquaBuddy3DCharacter?.AquaBuddy3DWalkChair);
     if (WalkEngine && mascot3DBoxWalk) {
       character3D = new WalkEngine({
         container: mascot3DBoxWalk,

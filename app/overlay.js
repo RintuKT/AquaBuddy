@@ -268,6 +268,10 @@ function stopCameraStream() {
 // ============================================================================
 function startWalkingSequence(data) {
   stopCameraStream();
+  if (walkChair3D) {
+    walkChair3D.destroy();
+    walkChair3D = null;
+  }
   if (actorUnitWalk) actorUnitWalk.style.display = 'none';
   if (actorUnit) actorUnit.style.display = 'flex';
 
@@ -293,10 +297,17 @@ function startWalkingSequence(data) {
 
   actorUnit.className = 'actor-unit is-walking';
 
-  if (character3D) character3D.destroy();
+  if (character3D) {
+    character3D.destroy();
+    character3D = null;
+  }
 
-  if (window.AquaBuddy3DCharacter && mascot3DBox) {
-    character3D = new window.AquaBuddy3DCharacter({
+  const CharEngine = typeof window.AquaBuddy3DCharacter === 'function'
+    ? window.AquaBuddy3DCharacter
+    : window.AquaBuddy3DCharacter?.AquaBuddy3DCharacter;
+
+  if (CharEngine && mascot3DBox) {
+    character3D = new CharEngine({
       container: mascot3DBox,
       width: Math.round(200 * scale),
       height: Math.round(260 * scale),
@@ -361,6 +372,10 @@ toastCloseBtn.addEventListener('click', () => {
 // ============================================================================
 function startWalkReminderSequence(data) {
   stopCameraStream();
+  if (character3D) {
+    character3D.destroy();
+    character3D = null;
+  }
   if (actorUnit) actorUnit.style.display = 'none';
   if (actorUnitWalk) actorUnitWalk.style.display = 'flex';
 
@@ -379,9 +394,15 @@ function startWalkReminderSequence(data) {
   walkStateSuccess.style.display = 'none';
   walkStateThrow.style.display = 'none';
 
-  if (walkChair3D) walkChair3D.destroy();
+  if (walkChair3D) {
+    walkChair3D.destroy();
+    walkChair3D = null;
+  }
 
-  const WalkEngine = window.AquaBuddy3DWalkChair || (window.AquaBuddy3DCharacter && window.AquaBuddy3DCharacter.WalkChair);
+  const WalkEngine = typeof window.AquaBuddy3DWalkChair === 'function'
+    ? window.AquaBuddy3DWalkChair
+    : (window.AquaBuddy3DCharacter?.WalkChair || window.AquaBuddy3DCharacter?.AquaBuddy3DWalkChair);
+
   if (WalkEngine && mascot3DBoxWalk) {
     const startOffset = Math.max(500, Math.round(window.innerWidth * 0.45));
     walkChair3D = new WalkEngine({
@@ -482,4 +503,22 @@ if (window.aquaBuddyAPI) {
     startWalkReminderSequence(data);
   });
 }
+
+// Standalone test support via URL query or window message
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const testMode = urlParams.get('test');
+  if (testMode === 'walk') {
+    startWalkReminderSequence();
+  } else if (testMode === 'water') {
+    startWalkingSequence();
+  }
+});
+window.addEventListener('message', (event) => {
+  if (event.data?.action === 'START_MASCOT_WALK') {
+    startWalkingSequence(event.data);
+  } else if (event.data?.action === 'START_WALK_REMINDER') {
+    startWalkReminderSequence(event.data);
+  }
+});
 
