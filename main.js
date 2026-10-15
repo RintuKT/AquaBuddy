@@ -7,13 +7,19 @@ let tray = null;
 let overlayWindow = null;
 let settingsWindow = null;
 let reminderTimer = null;
+let walkReminderTimer = null;
 let nextAlarmTimestamp = null;
+let nextWalkAlarmTimestamp = null;
 
 const DEFAULT_SETTINGS = {
   characterName: 'Leo & Fox',
   intervalMinutes: 30,
+  walkIntervalMinutes: 45,
+  walkReminderEnabled: true,
+  cameraCheckEnabled: true,
   snoozeMinutes: 10,
   dailyGoal: 8,
+  dailyWalkGoal: 4,
   characterSize: 'Max Large',
   characterScale: 1.4,
   soundEnabled: true,
@@ -41,7 +47,7 @@ function loadData() {
   const todayKey = getTodayDateKey();
   return {
     settings: { ...DEFAULT_SETTINGS },
-    stats: { date: todayKey, count: 0, history: [] }
+    stats: { date: todayKey, count: 0, walkCount: 0, history: [] }
   };
 }
 
@@ -85,6 +91,9 @@ app.whenReady().then(() => {
   createOverlayWindow();
   createTray();
   scheduleNextReminder(appData.settings.intervalMinutes);
+  if (appData.settings.walkReminderEnabled !== false) {
+    scheduleNextWalkReminder(appData.settings.walkIntervalMinutes || 45);
+  }
 
   // Trigger mascot walk on startup for immediate desktop preview
   setTimeout(() => {
@@ -110,7 +119,7 @@ function createOverlayWindow() {
   const { width, height } = primaryDisplay.workAreaSize;
 
   // Window spans across bottom area of screen so mascot can walk across smoothly
-  const overlayHeight = 440;
+  const overlayHeight = 520;
   const overlayY = height - overlayHeight;
 
   overlayWindow = new BrowserWindow({
@@ -203,11 +212,11 @@ function updateTrayMenu() {
   if (!tray) return;
 
   const charName = appData.settings.characterName || 'Leo & Fox';
-  tray.setToolTip(`AquaBuddy - ${charName} Hydration Reminder`);
+  tray.setToolTip(`AquaBuddy - ${charName} Hydration & Walk Reminder`);
 
   const todayKey = getTodayDateKey();
   if (appData.stats.date !== todayKey) {
-    appData.stats = { date: todayKey, count: 0, history: [] };
+    appData.stats = { date: todayKey, count: 0, walkCount: 0, history: [] };
     saveData(appData);
   }
 
@@ -215,19 +224,34 @@ function updateTrayMenu() {
     ? Math.max(0, Math.ceil((nextAlarmTimestamp - Date.now()) / (1000 * 60))) 
     : appData.settings.intervalMinutes;
 
+  const remainingWalkMins = nextWalkAlarmTimestamp 
+    ? Math.max(0, Math.ceil((nextWalkAlarmTimestamp - Date.now()) / (1000 * 60))) 
+    : (appData.settings.walkIntervalMinutes || 45);
+
   const contextMenu = Menu.buildFromTemplate([
-    { label: `💧 ${charName} Water Reminder`, enabled: false },
-    { label: `⏱️ Next reminder in: ~${remainingMins} min`, enabled: false },
-    { label: `📊 Today: ${appData.stats.count} / ${appData.settings.dailyGoal} glasses`, enabled: false },
+    { label: `💧 ${charName} Hydration & Activity`, enabled: false },
+    { label: `⏱️ Next Water Reminder: ~${remainingMins} min`, enabled: false },
+    { label: `🚶 Next Walk Reminder: ~${remainingWalkMins} min`, enabled: false },
+    { label: `📊 Today: ${appData.stats.count}/${appData.settings.dailyGoal} glasses • ${appData.stats.walkCount || 0}/${appData.settings.dailyWalkGoal || 4} walks`, enabled: false },
     { type: 'separator' },
     {
-      label: '🚶 Test Walking Mascot Animation',
+      label: '🪑 Test Walk Reminder (Right Entry & Chair)',
+      click: () => triggerWalkReminder()
+    },
+    {
+      label: '💧 Test Water Reminder (Left Entry)',
       click: () => triggerMascotWalk()
     },
     {
       label: '➕ Quick Log 1 Glass',
       click: () => {
         handleWaterDrank();
+      }
+    },
+    {
+      label: '🚶 Quick Log 1 Walk',
+      click: () => {
+        handleWalkCompleted();
       }
     },
     {
@@ -251,11 +275,29 @@ function scheduleNextReminder(minutes) {
   if (reminderTimer) clearTimeout(reminderTimer);
   
   nextAlarmTimestamp = Date.now() + minutes * 60 * 1000;
-  console.log(`[AquaBuddy] Next walking mascot reminder scheduled in ${minutes} minutes.`);
+  console.log(`[AquaBuddy] Next water reminder scheduled in ${minutes} minutes.`);
   updateTrayMenu();
 
   reminderTimer = setTimeout(() => {
     triggerMascotWalk();
+  }, minutes * 60 * 1000);
+}
+
+function scheduleNextWalkReminder(minutes) {
+  if (walkReminderTimer) clearTimeout(walkReminderTimer);
+  
+  if (appData.settings.walkReminderEnabled === false) {
+    nextWalkAlarmTimestamp = null;
+    updateTrayMenu();
+    return;
+  }
+
+  nextWalkAlarmTimestamp = Date.now() + minutes * 60 * 1000;
+  console.log(`[AquaBuddy] Next take-a-walk reminder scheduled in ${minutes} minutes.`);
+  updateTrayMenu();
+
+  walkReminderTimer = setTimeout(() => {
+    triggerWalkReminder();
   }, minutes * 60 * 1000);
 }
 
@@ -264,10 +306,9 @@ function triggerMascotWalk() {
     createOverlayWindow();
   }
 
-  // Adjust window width in case display changed
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  const overlayHeight = 440;
+  const overlayHeight = 520;
   overlayWindow.setBounds({
     x: 0,
     y: height - overlayHeight,
@@ -280,9 +321,35 @@ function triggerMascotWalk() {
     overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
   }
 
-  // showInactive() shows without stealing focus or switching active macOS spaces
   overlayWindow.showInactive();
   overlayWindow.webContents.send('START_MASCOT_WALK', {
+    settings: appData.settings,
+    stats: appData.stats
+  });
+}
+
+function triggerWalkReminder() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    createOverlayWindow();
+  }
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const overlayHeight = 520;
+  overlayWindow.setBounds({
+    x: 0,
+    y: height - overlayHeight,
+    width: width,
+    height: overlayHeight
+  });
+
+  if (process.platform === 'darwin') {
+    overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+    overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+  }
+
+  overlayWindow.showInactive();
+  overlayWindow.webContents.send('START_WALK_REMINDER', {
     settings: appData.settings,
     stats: appData.stats
   });
@@ -292,28 +359,51 @@ function triggerMascotWalk() {
 function handleWaterDrank() {
   const todayKey = getTodayDateKey();
   if (appData.stats.date !== todayKey) {
-    appData.stats = { date: todayKey, count: 0, history: [] };
+    appData.stats = { date: todayKey, count: 0, walkCount: 0, history: [] };
   }
 
   appData.stats.count += 1;
   appData.stats.history.push({
+    type: 'water',
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     timestamp: Date.now()
   });
 
   saveData(appData);
   updateTrayMenu();
-
-  // Reset to standard 30 minutes gap
   scheduleNextReminder(appData.settings.intervalMinutes);
   return appData.stats;
 }
 
+function handleWalkCompleted() {
+  const todayKey = getTodayDateKey();
+  if (appData.stats.date !== todayKey) {
+    appData.stats = { date: todayKey, count: 0, walkCount: 0, history: [] };
+  }
+
+  appData.stats.walkCount = (appData.stats.walkCount || 0) + 1;
+  appData.stats.history.push({
+    type: 'walk',
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    timestamp: Date.now()
+  });
+
+  saveData(appData);
+  updateTrayMenu();
+  scheduleNextWalkReminder(appData.settings.walkIntervalMinutes || 45);
+  return appData.stats;
+}
+
 function handleRemindLater() {
-  // Snooze for 10 minutes (or custom snooze setting)
   const snooze = appData.settings.snoozeMinutes || 10;
   scheduleNextReminder(snooze);
-  console.log(`[AquaBuddy] Snoozed. Character will walk out again in ${snooze} minutes.`);
+  console.log(`[AquaBuddy] Water snoozed. Character will walk out again in ${snooze} minutes.`);
+}
+
+function handleWalkLater() {
+  const snooze = appData.settings.snoozeMinutes || 10;
+  scheduleNextWalkReminder(snooze);
+  console.log(`[AquaBuddy] Walk snoozed. Character will appear with chair again in ${snooze} minutes.`);
 }
 
 // IPC Handlers
@@ -328,6 +418,17 @@ ipcMain.on('MASCOT_REMIND_LATER', () => {
   handleRemindLater();
 });
 
+ipcMain.on('MASCOT_WALK_COMPLETED', () => {
+  const updatedStats = handleWalkCompleted();
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.webContents.send('SETTINGS_UPDATED', { settings: appData.settings, stats: updatedStats });
+  }
+});
+
+ipcMain.on('MASCOT_WALK_DECLINED', () => {
+  handleWalkLater();
+});
+
 ipcMain.on('MASCOT_CLOSE_OVERLAY', () => {
   if (overlayWindow && !overlayWindow.isDestroyed()) {
     overlayWindow.hide();
@@ -338,16 +439,21 @@ ipcMain.on('TRIGGER_TEST_WALK', () => {
   triggerMascotWalk();
 });
 
+ipcMain.on('TRIGGER_TEST_WALK_REMINDER', () => {
+  triggerWalkReminder();
+});
+
 ipcMain.handle('GET_APP_STATUS', () => {
   const todayKey = getTodayDateKey();
   if (appData.stats.date !== todayKey) {
-    appData.stats = { date: todayKey, count: 0, history: [] };
+    appData.stats = { date: todayKey, count: 0, walkCount: 0, history: [] };
     saveData(appData);
   }
   return {
     settings: appData.settings,
     stats: appData.stats,
-    nextAlarmTimestamp
+    nextAlarmTimestamp,
+    nextWalkAlarmTimestamp
   };
 });
 
@@ -359,12 +465,20 @@ ipcMain.handle('SAVE_SETTINGS', (event, newSettings) => {
   saveData(appData);
   updateTrayMenu();
   scheduleNextReminder(appData.settings.intervalMinutes);
+  if (appData.settings.walkReminderEnabled !== false) {
+    scheduleNextWalkReminder(appData.settings.walkIntervalMinutes || 45);
+  } else if (walkReminderTimer) {
+    clearTimeout(walkReminderTimer);
+    walkReminderTimer = null;
+    nextWalkAlarmTimestamp = null;
+    updateTrayMenu();
+  }
   return { success: true, settings: appData.settings };
 });
 
 ipcMain.handle('RESET_TODAY_STATS', () => {
   const todayKey = getTodayDateKey();
-  appData.stats = { date: todayKey, count: 0, history: [] };
+  appData.stats = { date: todayKey, count: 0, walkCount: 0, history: [] };
   saveData(appData);
   updateTrayMenu();
   return { success: true, stats: appData.stats };

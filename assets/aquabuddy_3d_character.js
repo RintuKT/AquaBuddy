@@ -576,5 +576,360 @@
     }
   }
 
-  return AquaBuddy3DCharacter;
+  // Voice helper for character speech
+  function speakCharacter(text, options = {}) {
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = options.rate || 1.0;
+        utter.pitch = options.pitch || 1.15;
+        if (options.angry) {
+          utter.rate = 1.1;
+          utter.pitch = 0.85;
+          utter.volume = 1.0;
+        }
+        const voices = window.speechSynthesis.getVoices();
+        const en = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Alex') || v.name.includes('Google') || v.name.includes('Natural')));
+        if (en) utter.voice = en;
+        window.speechSynthesis.speak(utter);
+      }
+    } catch (e) {
+      console.warn('[AquaBuddy] Speech synthesis error:', e);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // AquaBuddy3DWalkChair - Right-Side Entry, Sitting, & 3D Chair Throw Engine
+  // --------------------------------------------------------------------------
+  class AquaBuddy3DWalkChair {
+    constructor(options = {}) {
+      this.container = options.container;
+      this.width = options.width || 240;
+      this.height = options.height || 280;
+      this.onSeated = options.onSeated || null;
+      this.onScreenImpact = options.onScreenImpact || null;
+
+      // Start from off-screen right, walk to center
+      this.travelStartX = options.startX || 600;
+      this.travelTargetX = options.targetX || 0;
+      this.currentX = this.travelStartX;
+
+      this.state = 'WALK_IN_RIGHT';
+      this.walkStartTime = performance.now();
+      this.walkDuration = 3200; // 3.2s smooth walk from right
+      this.stepFrequency = 2.4;
+      this.animId = null;
+      this.isDestroyed = false;
+
+      this.buildDOM();
+      this.startLoop();
+    }
+
+    buildDOM() {
+      if (!this.container) return;
+      this.container.innerHTML = '';
+
+      this.stage = document.createElement('div');
+      this.stage.className = 'ab-stage ab-chair-stage';
+
+      // Carrier
+      this.actorCarrier = document.createElement('div');
+      this.actorCarrier.className = 'ab-actor-carrier';
+      this.actorCarrier.style.transform = `translateX(${this.travelStartX}px)`;
+
+      // Kinematics (gait bounce & tilt)
+      this.kinematicsCarrier = document.createElement('div');
+      this.kinematicsCarrier.className = 'ab-kinematics-carrier';
+
+      // Pivot Layer (facing LEFT during walk-in)
+      this.pivotLayer = document.createElement('div');
+      this.pivotLayer.className = 'ab-pivot-layer';
+      this.pivotLayer.style.transform = 'scaleX(1)';
+
+      // Ground Shadow
+      this.groundShadow = document.createElement('div');
+      this.groundShadow.className = 'ab-ground-shadow';
+      this.groundShadow.style.width = '68%';
+
+      // Poses Stack
+      this.poseStack = document.createElement('div');
+      this.poseStack.className = 'ab-pose-stack';
+
+      const imgStyle = 'position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; object-position:bottom center; pointer-events:none;';
+
+      // 1. Carrying Chair Pose
+      this.imgCarryChair = document.createElement('img');
+      this.imgCarryChair.className = 'ab-pose-img active';
+      this.imgCarryChair.style.cssText = imgStyle;
+      this.imgCarryChair.src = getAssetUrl('pixar_carry_chair.png');
+      this.imgCarryChair.alt = 'Leo Carrying Chair';
+
+      // 2. Sitting in Chair Pose (Facing front)
+      this.imgSitChair = document.createElement('img');
+      this.imgSitChair.className = 'ab-pose-img';
+      this.imgSitChair.style.cssText = imgStyle;
+      this.imgSitChair.src = getAssetUrl('pixar_sit_chair.png');
+      this.imgSitChair.alt = 'Leo Sitting in Chair';
+
+      // 3. Throwing Chair Pose (Angry)
+      this.imgThrowChair = document.createElement('img');
+      this.imgThrowChair.className = 'ab-pose-img';
+      this.imgThrowChair.style.cssText = imgStyle;
+      this.imgThrowChair.src = getAssetUrl('pixar_throw_chair.png');
+      this.imgThrowChair.alt = 'Leo Throwing Chair';
+
+      // 4. Celebrate Pose (Thumbs up & happy)
+      this.imgCelebrate = document.createElement('img');
+      this.imgCelebrate.className = 'ab-pose-img';
+      this.imgCelebrate.style.cssText = imgStyle;
+      this.imgCelebrate.src = getAssetUrl('pixar_celebrate.png');
+      this.imgCelebrate.alt = 'Leo Celebrating';
+
+      this.poseStack.appendChild(this.imgCarryChair);
+      this.poseStack.appendChild(this.imgSitChair);
+      this.poseStack.appendChild(this.imgThrowChair);
+      this.poseStack.appendChild(this.imgCelebrate);
+
+      // Dedicated 3D Flying Chair (Hurled toward user screen on No)
+      this.flyingChair = document.createElement('img');
+      this.flyingChair.className = 'ab-flying-chair';
+      this.flyingChair.src = getAssetUrl('pixar_chair.png');
+      this.flyingChair.style.cssText = 'position:absolute; bottom:18px; left:50%; width:160px; height:180px; object-fit:contain; pointer-events:none; opacity:0; z-index:99; transform-origin:center center; will-change:transform, opacity;';
+      this.poseStack.appendChild(this.flyingChair);
+
+      // Sparkles
+      this.fxSparkles = document.createElement('div');
+      this.fxSparkles.className = 'ab-fx-sparkles';
+      this.fxSparkles.innerHTML = `
+        <span class="ab-sparkle-item" style="top:4%; left:8%; font-size:24px; animation-delay:0.1s;">✨</span>
+        <span class="ab-sparkle-item" style="top:-6%; right:14%; font-size:28px; animation-delay:0.25s;">🌟</span>
+        <span class="ab-sparkle-item" style="top:28%; left:2%; font-size:20px; animation-delay:0.4s;">⭐</span>
+        <span class="ab-sparkle-item" style="top:12%; right:4%; font-size:26px; animation-delay:0.2s;">✨</span>
+        <span class="ab-sparkle-item" style="top:-14%; left:42%; font-size:22px; animation-delay:0.35s;">🎉</span>
+      `;
+
+      this.pivotLayer.appendChild(this.poseStack);
+      this.pivotLayer.appendChild(this.fxSparkles);
+
+      this.kinematicsCarrier.appendChild(this.groundShadow);
+      this.kinematicsCarrier.appendChild(this.pivotLayer);
+
+      this.actorCarrier.appendChild(this.kinematicsCarrier);
+      this.stage.appendChild(this.actorCarrier);
+      this.container.appendChild(this.stage);
+    }
+
+    setPose(poseName) {
+      const poses = [
+        { name: 'carry', el: this.imgCarryChair },
+        { name: 'sit', el: this.imgSitChair },
+        { name: 'throw', el: this.imgThrowChair },
+        { name: 'celebrate', el: this.imgCelebrate }
+      ];
+
+      poses.forEach(p => {
+        if (p.name === poseName) {
+          p.el.classList.add('active');
+        } else {
+          p.el.classList.remove('active');
+        }
+      });
+    }
+
+    startLoop() {
+      const animate = (timestamp) => {
+        if (this.isDestroyed) return;
+        this.update(timestamp);
+        this.animId = requestAnimationFrame(animate);
+      };
+      this.animId = requestAnimationFrame(animate);
+    }
+
+    update(now) {
+      if (this.state === 'WALK_IN_RIGHT') {
+        const elapsed = now - this.walkStartTime;
+        const progress = Math.min(1.0, elapsed / this.walkDuration);
+
+        // Smooth human deceleration curve
+        const easeProgress = 1 - Math.pow(1 - progress, 2.8);
+        this.currentX = this.travelStartX + (this.travelTargetX - this.travelStartX) * easeProgress;
+        this.actorCarrier.style.transform = `translateX(${this.currentX}px)`;
+
+        // Gait bounce & tilt
+        const gaitPhase = (elapsed / 1000) * this.stepFrequency * Math.PI * 2;
+        const dampener = Math.max(0.2, 1 - progress * 0.8);
+        const bounceY = Math.abs(Math.sin(gaitPhase)) * 8 * dampener;
+        const tiltDeg = Math.sin(gaitPhase) * 2 * dampener;
+
+        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${tiltDeg}deg)`;
+        this.groundShadow.style.transform = `scale(${1.0 + (bounceY / 8) * 0.15}, 1.0)`;
+
+        if (progress >= 1.0) {
+          this.state = 'TRANSITION_SEATED';
+          this.transitionToSeated();
+        }
+      } else if (this.state === 'WALK_OUT_RIGHT') {
+        const elapsed = now - this.walkOutStartTime;
+        const progress = Math.min(1.0, elapsed / this.walkOutDuration);
+
+        const easeProgress = Math.pow(progress, 1.4);
+        this.currentX = this.travelTargetX + (this.travelStartX - this.travelTargetX) * easeProgress;
+        this.actorCarrier.style.transform = `translateX(${this.currentX}px)`;
+
+        const gaitPhase = (elapsed / 1000) * this.stepFrequency * Math.PI * 2;
+        const bounceY = Math.abs(Math.sin(gaitPhase)) * 8;
+        const tiltDeg = Math.sin(gaitPhase) * 2;
+
+        this.kinematicsCarrier.style.transform = `translateY(${bounceY}px) rotate(${tiltDeg}deg)`;
+
+        if (progress >= 1.0) {
+          this.state = 'OFFSCREEN';
+          if (typeof this.walkOutCallback === 'function') {
+            this.walkOutCallback();
+            this.walkOutCallback = null;
+          }
+        }
+      }
+    }
+
+    transitionToSeated() {
+      // Chair placed down gently, character sits down comfortably
+      this.kinematicsCarrier.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      this.kinematicsCarrier.style.transform = 'translateY(12px) scale(1.04, 0.94)';
+
+      setTimeout(() => {
+        // Crossfade to sitting in chair pose
+        this.setPose('sit');
+        this.pivotLayer.style.transform = 'perspective(800px) rotateY(0deg) scale(1.0)';
+        this.kinematicsCarrier.style.transition = 'transform 0.4s ease-out';
+        this.kinematicsCarrier.style.transform = 'translateY(0) scale(1, 1)';
+        this.groundShadow.style.transform = 'scale(1.2, 1.1)';
+        this.groundShadow.style.opacity = '0.7';
+
+        // Organic breathing while seated
+        this.kinematicsCarrier.classList.add('ab-breathing');
+        this.state = 'SEATED_ASKING';
+
+        if (typeof this.onSeated === 'function') {
+          this.onSeated();
+        }
+      }, 260);
+    }
+
+    // 1. User clicked "Yes, I'll take a walk"
+    triggerCelebrateWalk(callback) {
+      this.state = 'CELEBRATE';
+      this.kinematicsCarrier.classList.remove('ab-breathing');
+
+      // Voice: "Good job! Stay healthy, make it a routine!"
+      speakCharacter("Good job! Stay healthy, make it a routine!");
+
+      // Stand up and celebrate
+      this.setPose('celebrate');
+      this.fxSparkles.classList.add('active');
+
+      // Joyful celebratory jump
+      this.kinematicsCarrier.style.transition = 'transform 0.15s ease-in';
+      this.kinematicsCarrier.style.transform = 'translateY(8px) scale(1.05, 0.95)';
+
+      setTimeout(() => {
+        this.kinematicsCarrier.style.transition = 'transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+        this.kinematicsCarrier.style.transform = 'translateY(-50px) scale(0.96, 1.06)';
+
+        setTimeout(() => {
+          this.kinematicsCarrier.style.transition = 'transform 0.25s ease-out';
+          this.kinematicsCarrier.style.transform = 'translateY(0) scale(1, 1)';
+
+          // After celebration: turn and walk out to right
+          setTimeout(() => {
+            this.walkOutToRight(callback);
+          }, 1200);
+        }, 400);
+      }, 150);
+    }
+
+    // 2. User clicked "No / Not now" -> Throw the chair straight towards user with "You will die here!"
+    triggerThrowChair(callback) {
+      this.state = 'THROW_CHAIR';
+      this.kinematicsCarrier.classList.remove('ab-breathing');
+
+      // Voice: "You will die here!"
+      speakCharacter("You will die here!", { angry: true });
+
+      // Switch to furious throw pose
+      this.setPose('throw');
+
+      // Anticipation wind-up
+      this.kinematicsCarrier.style.transition = 'transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)';
+      this.kinematicsCarrier.style.transform = 'translateY(-14px) rotate(-4deg) scale(0.96, 1.04)';
+
+      setTimeout(() => {
+        // Dramatic forward thrust throw
+        this.kinematicsCarrier.style.transition = 'transform 0.18s cubic-bezier(0.15, 0.85, 0.35, 1)';
+        this.kinematicsCarrier.style.transform = 'translateY(8px) rotate(6deg) scale(1.06, 0.94)';
+
+        // 3D Flying Chair trajectory launching directly toward user camera screen!
+        this.flyingChair.style.opacity = '1';
+        this.flyingChair.style.transition = 'transform 0.85s cubic-bezier(0.1, 0.82, 0.25, 1), opacity 0.85s ease-in';
+        // Massive 3D zoom straight into screen with 3D rotation and spin
+        this.flyingChair.style.transform = 'translate3d(-20px, -90px, 800px) scale(5.8) rotateZ(1080deg) rotateX(160deg)';
+
+        setTimeout(() => {
+          // Impact on screen!
+          if (typeof this.onScreenImpact === 'function') {
+            this.onScreenImpact();
+          }
+
+          // Chair fades after impact
+          this.flyingChair.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
+          this.flyingChair.style.opacity = '0';
+          this.flyingChair.style.transform += ' translateY(80px)';
+
+          // Angry Leo stomps off screen to right
+          setTimeout(() => {
+            this.walkOutToRight(callback, true);
+          }, 600);
+        }, 820);
+      }, 220);
+    }
+
+    walkOutToRight(callback, isAngry = false) {
+      this.state = 'WALK_OUT_RIGHT';
+      this.walkOutCallback = callback || null;
+      this.fxSparkles.classList.remove('active');
+      this.kinematicsCarrier.classList.remove('ab-breathing');
+
+      // Face right (scaleX -1 for carry/walk pose)
+      this.setPose('carry');
+      this.pivotLayer.style.transform = 'scaleX(-1)';
+
+      this.walkOutStartTime = performance.now();
+      this.walkOutDuration = isAngry ? 1800 : 2500; // Angry stomps faster
+      this.stepFrequency = isAngry ? 3.4 : 2.4;
+    }
+
+    destroy() {
+      this.isDestroyed = true;
+      if (this.animId) {
+        cancelAnimationFrame(this.animId);
+        this.animId = null;
+      }
+      if (this.container) {
+        this.container.innerHTML = '';
+      }
+    }
+  }
+
+  // Export both engines
+  AquaBuddy3DCharacter.WalkChair = AquaBuddy3DWalkChair;
+  if (typeof window !== 'undefined') {
+    window.AquaBuddy3DCharacter = AquaBuddy3DCharacter;
+    window.AquaBuddy3DWalkChair = AquaBuddy3DWalkChair;
+  }
+
+  return {
+    AquaBuddy3DCharacter,
+    AquaBuddy3DWalkChair
+  };
 }));

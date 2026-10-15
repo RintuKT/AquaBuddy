@@ -99,18 +99,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Test Reminder Button
+  const btnTestWalkReminder = document.getElementById('btnTestWalkReminder');
+
+  // Test Reminder Buttons
   btnTestReminder.addEventListener('click', async () => {
     btnTestReminder.disabled = true;
-    btnTestReminder.innerHTML = '<span>🚀 Triggered! Check your screen</span>';
+    btnTestReminder.innerHTML = '<span>🚀 Triggered!</span>';
 
     chrome.runtime.sendMessage({ action: 'TRIGGER_TEST' }, () => {
       setTimeout(() => {
         btnTestReminder.disabled = false;
-        btnTestReminder.innerHTML = '<span class="icon">✨</span><span>Test Mascot Animation</span>';
+        btnTestReminder.innerHTML = '<span class="icon">💧</span><span>Water Walk</span>';
       }, 2000);
     });
   });
+
+  if (btnTestWalkReminder) {
+    btnTestWalkReminder.addEventListener('click', async () => {
+      btnTestWalkReminder.disabled = true;
+      btnTestWalkReminder.innerHTML = '<span>🚀 Triggered!</span>';
+
+      chrome.runtime.sendMessage({ action: 'TRIGGER_WALK_TEST' }, () => {
+        setTimeout(() => {
+          btnTestWalkReminder.disabled = false;
+          btnTestWalkReminder.innerHTML = '<span class="icon">🪑</span><span>Walk & Chair</span>';
+        }, 2000);
+      });
+    });
+  }
 
   // Settings Accordion Toggle
   settingsToggle.addEventListener('click', () => {

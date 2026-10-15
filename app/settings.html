@@ -17,9 +17,14 @@
           <p class="subtitle">Desktop Water Reminder & Mascot</p>
         </div>
       </div>
-      <button class="btn-test-action" id="btnTestWalkTop" title="Test walking character now">
-        <span>🚶 Test Walk</span>
-      </button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-test-action" id="btnTestWaterTop" title="Test water reminder animation">
+          <span>💧 Water</span>
+        </button>
+        <button class="btn-test-action" id="btnTestWalkChairTop" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" title="Test take a walk reminder with chair">
+          <span>🪑 Walk & Chair</span>
+        </button>
+      </div>
     </header>
 
     <!-- Character Size & Appearance Card -->
@@ -68,30 +73,73 @@
       </div>
     </section>
 
-    <!-- Reminder Timers Card -->
+    <!-- Hydration Schedule Card -->
     <section class="card">
-      <h3 class="card-title">⏰ Hydration Schedule</h3>
+      <h3 class="card-title">💧 Hydration Schedule (Drink Water)</h3>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="intervalInput">Reminder Interval (Minutes)</label>
+          <label for="intervalInput">Water Interval (Minutes)</label>
           <input type="number" id="intervalInput" class="input-box" min="1" max="180" value="30">
         </div>
 
         <div class="form-group">
-          <label for="snoozeInput">Snooze / Remind Later (Minutes)</label>
+          <label for="snoozeInput">Snooze Duration (Minutes)</label>
           <input type="number" id="snoozeInput" class="input-box" min="1" max="60" value="10">
         </div>
+
+        <div class="form-group">
+          <label for="goalInput">Daily Water Goal (Glasses)</label>
+          <input type="number" id="goalInput" class="input-box" min="1" max="25" value="8">
+        </div>
+      </div>
+    </section>
+
+    <!-- Take a Walk & Stretch Schedule Card (New!) -->
+    <section class="card" style="border: 1px solid rgba(245, 158, 11, 0.35);">
+      <div class="card-header">
+        <h3 class="card-title" style="color: #fbbf24;">🚶 Take a Walk Reminder (Chair Mascot)</h3>
+        <span class="scale-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">New 3D Feature</span>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="goalInput">Daily Goal (Glasses)</label>
-          <input type="number" id="goalInput" class="input-box" min="1" max="25" value="8">
+          <label for="walkIntervalInput">Walk Interval (Minutes)</label>
+          <input type="number" id="walkIntervalInput" class="input-box" min="1" max="240" value="45">
         </div>
 
+        <div class="form-group">
+          <label for="walkGoalInput">Daily Walk Goal (Times)</label>
+          <input type="number" id="walkGoalInput" class="input-box" min="1" max="20" value="4">
+        </div>
+
+        <div class="form-group toggle-group" style="align-items: center; justify-content: center;">
+          <label for="walkReminderCheck">Enable Walk Reminder</label>
+          <input type="checkbox" id="walkReminderCheck" checked>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top: 8px;">
+        <div class="form-group toggle-group" style="flex: 2;">
+          <label for="cameraCheck">👁️ Camera Attention Lock (2 Seconds)</label>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Locks Yes/No buttons for 2s so you see the reminder and character</p>
+          <input type="checkbox" id="cameraCheck" checked style="margin-top: 4px;">
+        </div>
+
+        <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
+          <button type="button" class="btn-preset" id="btnTestWalkChairBottom" style="width: 100%; background: #d97706; color: white; border: none; font-weight: 700; padding: 10px;">
+            🪑 Test Walk Routine
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Preferences Card -->
+    <section class="card">
+      <h3 class="card-title">⚙️ System & Audio</h3>
+      <div class="form-row">
         <div class="form-group toggle-group">
-          <label for="soundCheck">Sound Effects</label>
+          <label for="soundCheck">Sound Effects & Speech Synthesis</label>
           <input type="checkbox" id="soundCheck" checked>
         </div>
 
@@ -107,7 +155,7 @@
       <div class="stats-header">
         <div>
           <h3 class="card-title">📊 Today's Progress</h3>
-          <p class="stats-counter" id="statsCounter">0 / 8 Glasses Drunk</p>
+          <p class="stats-counter" id="statsCounter">0 / 8 Glasses Drunk • 0 / 4 Walks Taken</p>
         </div>
         <button class="btn-secondary" id="btnResetStats">Reset Count</button>
       </div>

@@ -8,16 +8,22 @@
 <body>
   <div class="overlay-stage" id="overlayStage">
     
-    <!-- Walking Character & Speech Bubble Unit -->
+    <!-- Screen Impact & Shatter Shake Layer (for chair throw) -->
+    <div class="screen-impact-overlay" id="screenImpactOverlay"></div>
+
+    <!-- Hidden Camera Analysis Elements -->
+    <video id="cameraVideo" autoplay playsinline muted style="display:none;"></video>
+    <canvas id="cameraCanvas" width="80" height="60" style="display:none;"></canvas>
+
+    <!-- 1. Water Reminder Actor Unit (Left Entry with Water Bottle) -->
     <div class="actor-unit" id="actorUnit">
       
       <!-- Mascot Container (3D Pixar Character Viewport) -->
       <div class="mascot-actor" id="mascotActor">
-        <!-- 3D Three.js WebGL Container -->
         <div id="mascot3DBox" class="mascot-3d-box"></div>
       </div>
 
-      <!-- Speech Bubble Toast (Hidden while walking, opens after raising bottle) -->
+      <!-- Speech Bubble Toast -->
       <div class="speech-toast" id="speechToast">
         <button class="toast-close-btn" id="toastCloseBtn" title="Close">✕</button>
 
@@ -64,6 +70,78 @@
             <div class="feedback-info">
               <h3 class="feedback-title crying-title">Aww... Don't forget!</h3>
               <p class="feedback-desc">Ok, I will remind you after <strong id="snoozeGapText">10 minutes</strong>!</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 2. Take a Walk Reminder Actor Unit (Right Entry, Sits Center with Chair) -->
+    <div class="actor-unit-walk" id="actorUnitWalk" style="display: none;">
+      
+      <!-- Mascot Container (Carrying Chair -> Sitting in Center) -->
+      <div class="mascot-actor-walk" id="mascotActorWalk">
+        <div id="mascot3DBoxWalk" class="mascot-3d-box"></div>
+      </div>
+
+      <!-- Walk Speech Bubble Toast -->
+      <div class="speech-toast walk-toast" id="walkSpeechToast">
+        <button class="toast-close-btn" id="walkToastCloseBtn" title="Close">✕</button>
+
+        <!-- Question State with Camera Attention Lock -->
+        <div id="walkStateQuestion" class="toast-state">
+          <div class="toast-header">
+            <span class="bubble-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🪑</span>
+            <div class="header-text">
+              <span class="app-name" id="walkCharNameDisplay">Leo & Fox</span>
+              <span class="header-sub" style="color: #d97706;">Take a Walk Reminder</span>
+            </div>
+          </div>
+
+          <!-- Camera Face Attention Indicator (Locks 2 seconds) -->
+          <div class="camera-badge" id="cameraBadge">
+            <span class="cam-dot" id="camDot"></span>
+            <span class="cam-text" id="camStatusText">Checking for you...</span>
+            <span class="countdown-tag" id="camCountdownTag">2.0s</span>
+          </div>
+
+          <div class="question-box" style="color: #78350f;">
+            Time to stand up and take a walk! Stretch your legs and move around.
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-walk-yes is-locked" id="btnWalkYes" disabled>
+              <span class="btn-icon">🚶</span>
+              <span class="btn-label" id="btnWalkYesLabel">Yes, I'll walk! (2s)</span>
+            </button>
+            <button class="btn btn-walk-no is-locked" id="btnWalkNo" disabled>
+              <span class="btn-icon">🪑</span>
+              <span class="btn-label">No, not now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Success State: Good Job Stay Healthy -->
+        <div id="walkStateSuccess" class="toast-state" style="display: none;">
+          <div class="feedback-layout">
+            <div class="feedback-icon">🌟</div>
+            <div class="feedback-info">
+              <h3 class="feedback-title" style="color: #059669;">Good Job! Stay Healthy! 🌟</h3>
+              <p class="feedback-desc">Awesome! Strolling regularly keeps you energized and focused. Make it a daily routine!</p>
+              <div class="stats-pill" style="background:#fef3c7; border-color:#fde68a; color:#b45309;">🚶 +1 Walk logged</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Angry State: Throw Chair & "You Will Die Here" -->
+        <div id="walkStateThrow" class="toast-state" style="display: none;">
+          <div class="feedback-layout">
+            <div class="feedback-icon" style="animation: angryIconShake 0.4s infinite;">🪑💥</div>
+            <div class="feedback-info">
+              <h3 class="feedback-title" style="color: #dc2626; font-size: 18px;">YOU WILL DIE HERE! 💥</h3>
+              <p class="feedback-desc" style="color: #991b1b; font-weight: 600;">Prolonged sitting is deadly! Stand up and walk before it's too late!</p>
             </div>
           </div>
         </div>

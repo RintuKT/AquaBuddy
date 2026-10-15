@@ -126,6 +126,21 @@ async function triggerReminderInTabs() {
   }
 }
 
+async function triggerWalkReminderInTabs() {
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tabs || tabs.length === 0) return;
+    const tab = tabs[0];
+    const data = await chrome.storage.local.get(['settings']);
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'SHOW_WALK_REMINDER',
+      settings: data.settings || {}
+    });
+  } catch (error) {
+    console.error('[AquaBuddy] Error in triggerWalkReminderInTabs:', error);
+  }
+}
+
 // Handle notification click
 chrome.notifications.onClicked.addListener(async (notifId) => {
   if (notifId === 'water-reminder-toast') {
@@ -189,6 +204,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'TRIGGER_TEST') {
     triggerReminderInTabs().then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (message.action === 'TRIGGER_WALK_TEST') {
+    triggerWalkReminderInTabs().then(() => {
       sendResponse({ success: true });
     });
     return true;

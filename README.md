@@ -58,8 +58,8 @@ Visit [**AquaBuddy Releases**](https://github.com/RintuKT/AquaBuddy/releases/lat
 
 | Platform | Recommended File | Alternative | Description |
 | :--- | :--- | :--- | :--- |
-| **macOS** | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.6-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | Universal for Intel & Apple Silicon Macs |
-| **Windows** | [**AquaBuddy.Setup.1.0.6.exe**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.6-win.zip**](https://github.com/RintuKT/AquaBuddy/releases/latest) | 64-bit Windows PC / Laptop installer |
+| **macOS** | [**AquaBuddy-Universal-Installer.pkg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.7-universal.dmg**](https://github.com/RintuKT/AquaBuddy/releases/latest) | Universal for Intel & Apple Silicon Macs |
+| **Windows** | [**AquaBuddy.Setup.1.0.7.exe**](https://github.com/RintuKT/AquaBuddy/releases/latest) | [**AquaBuddy-1.0.7-win.zip**](https://github.com/RintuKT/AquaBuddy/releases/latest) | 64-bit Windows PC / Laptop installer |
 | **Chrome / Edge** | [**aquabuddy-chrome-extension.zip**](https://github.com/RintuKT/AquaBuddy/releases/latest) | — | Unpack & load in `chrome://extensions` |
 
 ---

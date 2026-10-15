@@ -1,6 +1,11 @@
-// AquaBuddy - Desktop Walking Mascot Overlay Script
-// Powered by Real Three.js 3D Character Engine (Leo + Fennec Fox + Water Bottle)
+// AquaBuddy - Desktop Mascot Overlay Script
+// Dual 3D Engine: Hydration Reminder (Left Entry) & Walk Routine (Right Entry with Chair)
 
+// Stage Elements
+const overlayStage = document.getElementById('overlayStage');
+const screenImpactOverlay = document.getElementById('screenImpactOverlay');
+
+// 1. Water Reminder Elements
 const actorUnit = document.getElementById('actorUnit');
 const mascotActor = document.getElementById('mascotActor');
 const mascot3DBox = document.getElementById('mascot3DBox');
@@ -8,19 +13,39 @@ const speechToast = document.getElementById('speechToast');
 const toastCloseBtn = document.getElementById('toastCloseBtn');
 const btnYes = document.getElementById('btnYes');
 const btnLater = document.getElementById('btnLater');
-
 const stateQuestion = document.getElementById('stateQuestion');
 const stateSuccess = document.getElementById('stateSuccess');
 const stateSnooze = document.getElementById('stateSnooze');
 const successGapText = document.getElementById('successGapText');
 const snoozeGapText = document.getElementById('snoozeGapText');
 
+// 2. Walk & Chair Reminder Elements
+const actorUnitWalk = document.getElementById('actorUnitWalk');
+const mascotActorWalk = document.getElementById('mascotActorWalk');
+const mascot3DBoxWalk = document.getElementById('mascot3DBoxWalk');
+const walkSpeechToast = document.getElementById('walkSpeechToast');
+const walkToastCloseBtn = document.getElementById('walkToastCloseBtn');
+const walkStateQuestion = document.getElementById('walkStateQuestion');
+const walkStateSuccess = document.getElementById('walkStateSuccess');
+const walkStateThrow = document.getElementById('walkStateThrow');
+const btnWalkYes = document.getElementById('btnWalkYes');
+const btnWalkNo = document.getElementById('btnWalkNo');
+const btnWalkYesLabel = document.getElementById('btnWalkYesLabel');
+const cameraBadge = document.getElementById('cameraBadge');
+const camStatusText = document.getElementById('camStatusText');
+const camCountdownTag = document.getElementById('camCountdownTag');
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+
 let soundEnabled = true;
 let currentIntervalMinutes = 30;
 let currentSnoozeMinutes = 10;
 let character3D = null;
+let walkChair3D = null;
+let cameraStream = null;
+let cameraLockTimer = null;
 
-// Sound Synthesizer
+// Sound Synthesizer (Realistic Procedural Audio)
 function playSound(type) {
   if (!soundEnabled) return;
   try {
@@ -40,6 +65,54 @@ function playSound(type) {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.17);
+    } else if (type === 'chairThud') {
+      // Deep wooden thud when chair is set down
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.23);
+    } else if (type === 'chairWhoosh') {
+      // Whoosh sound as chair is launched
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(180, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.28, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.36);
+    } else if (type === 'chairCrash') {
+      // Violent glass and wood crash impact
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(220, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.45);
+      osc2.frequency.setValueAtTime(90, ctx.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
+
+      gain.gain.setValueAtTime(0.65, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start();
+      osc2.start();
+      osc1.stop(ctx.currentTime + 0.56);
+      osc2.stop(ctx.currentTime + 0.56);
     } else if (type === 'success') {
       const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
       notes.forEach((freq, idx) => {
@@ -56,6 +129,19 @@ function playSound(type) {
         osc.start(startTime);
         osc.stop(startTime + 0.39);
       });
+    } else if (type === 'unlock') {
+      // Pleasant unlock chime
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.26);
     } else if (type === 'crying') {
       const notes = [440, 415.3, 392, 349.23];
       notes.forEach((freq, idx) => {
@@ -77,8 +163,114 @@ function playSound(type) {
   }
 }
 
-// Start 3D Mascot Walking Sequence from Left
+// ============================================================================
+// CAMERA FACE & ATTENTION DETECTOR (2-Second Lock)
+// ============================================================================
+function startCameraAttentionLock(onUnlock) {
+  if (cameraLockTimer) clearInterval(cameraLockTimer);
+
+  let remainingMs = 2000;
+  let faceDetected = false;
+
+  // Lock buttons initially
+  btnWalkYes.classList.add('is-locked');
+  btnWalkYes.disabled = true;
+  btnWalkNo.classList.add('is-locked');
+  btnWalkNo.disabled = true;
+
+  cameraBadge.classList.remove('face-detected');
+  camStatusText.textContent = 'Checking for you...';
+  camCountdownTag.textContent = '2.0s';
+  btnWalkYesLabel.textContent = "Yes, I'll walk! (2s)";
+
+  // Request camera stream to check presence
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { width: 160, height: 120, facingMode: 'user' } })
+      .then((stream) => {
+        cameraStream = stream;
+        cameraVideo.srcObject = stream;
+        cameraVideo.play().then(() => {
+          // Analyze frame
+          checkCameraFace();
+        }).catch(() => {});
+      })
+      .catch(() => {
+        camStatusText.textContent = 'Attention lock active';
+      });
+  }
+
+  function checkCameraFace() {
+    if (!cameraStream || !cameraCanvas) return;
+    try {
+      const ctx = cameraCanvas.getContext('2d');
+      if (ctx && cameraVideo.videoWidth > 0) {
+        ctx.drawImage(cameraVideo, 0, 0, 80, 60);
+        const imgData = ctx.getImageData(0, 0, 80, 60);
+        let totalBrightness = 0;
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          totalBrightness += (d[i] + d[i + 1] + d[i + 2]) / 3;
+        }
+        const avgBrightness = totalBrightness / (d.length / 4);
+        if (avgBrightness > 25 && avgBrightness < 240) {
+          faceDetected = true;
+          cameraBadge.classList.add('face-detected');
+          camStatusText.textContent = '👀 Face detected! Eyes on screen';
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 100ms interval countdown
+  cameraLockTimer = setInterval(() => {
+    remainingMs -= 100;
+    const sec = Math.max(0, (remainingMs / 1000)).toFixed(1);
+    camCountdownTag.textContent = `${sec}s`;
+    btnWalkYesLabel.textContent = `Yes, I'll walk! (${Math.ceil(remainingMs / 1000)}s)`;
+
+    if (cameraStream && !faceDetected) {
+      checkCameraFace();
+    }
+
+    if (remainingMs <= 0) {
+      clearInterval(cameraLockTimer);
+      cameraLockTimer = null;
+
+      // Unlock buttons!
+      btnWalkYes.classList.remove('is-locked');
+      btnWalkYes.disabled = false;
+      btnWalkNo.classList.remove('is-locked');
+      btnWalkNo.disabled = false;
+
+      btnWalkYesLabel.textContent = "Yes, I'll take a walk!";
+      camCountdownTag.textContent = '✓ Ready';
+      playSound('unlock');
+
+      // Stop camera stream to conserve power
+      stopCameraStream();
+
+      if (typeof onUnlock === 'function') {
+        onUnlock();
+      }
+    }
+  }, 100);
+}
+
+function stopCameraStream() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+}
+
+// ============================================================================
+// 1. WATER REMINDER SEQUENCE (LEFT ENTRY)
+// ============================================================================
 function startWalkingSequence(data) {
+  stopCameraStream();
+  if (actorUnitWalk) actorUnitWalk.style.display = 'none';
+  if (actorUnit) actorUnit.style.display = 'flex';
+
   const settings = data?.settings || {};
   soundEnabled = settings.soundEnabled !== false;
   currentIntervalMinutes = settings.intervalMinutes || 30;
@@ -101,10 +293,7 @@ function startWalkingSequence(data) {
 
   actorUnit.className = 'actor-unit is-walking';
 
-  // Instantiate Real 3D Pixar Animated Character in Three.js
-  if (character3D) {
-    character3D.destroy();
-  }
+  if (character3D) character3D.destroy();
 
   if (window.AquaBuddy3DCharacter && mascot3DBox) {
     character3D = new window.AquaBuddy3DCharacter({
@@ -112,7 +301,6 @@ function startWalkingSequence(data) {
       width: Math.round(200 * scale),
       height: Math.round(260 * scale),
       onBottleRaised: () => {
-        // ONLY after character stops and raises the water bottle: pop toast
         playSound('pop');
         speechToast.classList.add('show-toast');
       }
@@ -120,7 +308,6 @@ function startWalkingSequence(data) {
   }
 }
 
-// Helper: walk mascot back out off-screen to the left
 function walkOutToLeft() {
   speechToast.classList.remove('show-toast');
   speechToast.classList.add('hide-toast');
@@ -136,61 +323,163 @@ function walkOutToLeft() {
   }
 }
 
-// 1. User clicked "Yes, I drank!"
 btnYes.addEventListener('click', () => {
   playSound('success');
+  if (character3D) character3D.triggerCelebrate();
 
-  // Trigger 3D jumping celebration
-  if (character3D) {
-    character3D.triggerCelebrate();
-  }
-
-  // Show Yey! Good Job in toast
   stateQuestion.style.display = 'none';
   stateSuccess.style.display = 'block';
 
-  if (window.aquaBuddyAPI) {
-    window.aquaBuddyAPI.respondWaterDrank();
-  }
+  if (window.aquaBuddyAPI) window.aquaBuddyAPI.respondWaterDrank();
 
-  // After 1.8s of celebration: toast disappears, character pivots in 3D and walks out
   setTimeout(() => {
     walkOutToLeft();
   }, 1800);
 });
 
-// 2. User clicked "No / Remind later"
 btnLater.addEventListener('click', () => {
   playSound('crying');
+  if (character3D) character3D.triggerCrying();
 
-  // Trigger 3D crying mannerism
-  if (character3D) {
-    character3D.triggerCrying();
-  }
-
-  // Show snooze message in toast
   stateQuestion.style.display = 'none';
   stateSnooze.style.display = 'block';
 
-  if (window.aquaBuddyAPI) {
-    window.aquaBuddyAPI.respondRemindLater();
-  }
+  if (window.aquaBuddyAPI) window.aquaBuddyAPI.respondRemindLater();
 
-  // After 1.8s of crying: toast disappears, character pivots in 3D and walks out
   setTimeout(() => {
     walkOutToLeft();
   }, 1800);
 });
 
-// Close button
 toastCloseBtn.addEventListener('click', () => {
   if (window.aquaBuddyAPI) window.aquaBuddyAPI.respondRemindLater();
   walkOutToLeft();
 });
 
-// Listen to main process IPC
+// ============================================================================
+// 2. TAKE A WALK REMINDER SEQUENCE (RIGHT ENTRY, SITS CENTER WITH CHAIR)
+// ============================================================================
+function startWalkReminderSequence(data) {
+  stopCameraStream();
+  if (actorUnit) actorUnit.style.display = 'none';
+  if (actorUnitWalk) actorUnitWalk.style.display = 'flex';
+
+  const settings = data?.settings || {};
+  soundEnabled = settings.soundEnabled !== false;
+
+  const charName = settings.characterName || 'Leo & Fox';
+  const walkCharNameEl = document.getElementById('walkCharNameDisplay');
+  if (walkCharNameEl) walkCharNameEl.textContent = charName;
+
+  const scale = Math.min(1.4, Math.max(0.8, settings.characterScale || 1.4));
+  document.documentElement.style.setProperty('--mascot-scale', scale);
+
+  walkSpeechToast.classList.remove('show-toast', 'hide-toast');
+  walkStateQuestion.style.display = 'block';
+  walkStateSuccess.style.display = 'none';
+  walkStateThrow.style.display = 'none';
+
+  if (walkChair3D) walkChair3D.destroy();
+
+  const WalkEngine = window.AquaBuddy3DWalkChair || (window.AquaBuddy3DCharacter && window.AquaBuddy3DCharacter.WalkChair);
+  if (WalkEngine && mascot3DBoxWalk) {
+    const startOffset = Math.max(500, Math.round(window.innerWidth * 0.45));
+    walkChair3D = new WalkEngine({
+      container: mascot3DBoxWalk,
+      width: Math.round(240 * scale),
+      height: Math.round(280 * scale),
+      startX: startOffset,
+      targetX: 0,
+      onSeated: () => {
+        // Chair placed down & mascot is seated!
+        playSound('chairThud');
+        playSound('pop');
+        walkSpeechToast.classList.add('show-toast');
+
+        // Activate 2-second camera attention lock
+        startCameraAttentionLock();
+      },
+      onScreenImpact: () => {
+        // Chair hits user screen!
+        playSound('chairCrash');
+        screenImpactOverlay.classList.remove('active');
+        void screenImpactOverlay.offsetWidth;
+        screenImpactOverlay.classList.add('active');
+
+        overlayStage.classList.remove('screen-shatter-shake');
+        void overlayStage.offsetWidth;
+        overlayStage.classList.add('screen-shatter-shake');
+      }
+    });
+  }
+}
+
+// User clicked "Yes, I'll walk!"
+btnWalkYes.addEventListener('click', () => {
+  if (btnWalkYes.classList.contains('is-locked')) return;
+
+  playSound('success');
+  walkStateQuestion.style.display = 'none';
+  walkStateSuccess.style.display = 'block';
+
+  if (window.aquaBuddyAPI) {
+    window.aquaBuddyAPI.respondWalkCompleted();
+  }
+
+  if (walkChair3D) {
+    walkChair3D.triggerCelebrateWalk(() => {
+      walkSpeechToast.classList.remove('show-toast');
+      walkSpeechToast.classList.add('hide-toast');
+      setTimeout(() => {
+        if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
+      }, 500);
+    });
+  }
+});
+
+// User clicked "No, not now" -> Throw Chair + "You will die here!"
+btnWalkNo.addEventListener('click', () => {
+  if (btnWalkNo.classList.contains('is-locked')) return;
+
+  playSound('chairWhoosh');
+  walkStateQuestion.style.display = 'none';
+  walkStateThrow.style.display = 'block';
+
+  if (window.aquaBuddyAPI) {
+    window.aquaBuddyAPI.respondWalkDeclined();
+  }
+
+  if (walkChair3D) {
+    walkChair3D.triggerThrowChair(() => {
+      walkSpeechToast.classList.remove('show-toast');
+      walkSpeechToast.classList.add('hide-toast');
+      setTimeout(() => {
+        if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
+      }, 500);
+    });
+  }
+});
+
+walkToastCloseBtn.addEventListener('click', () => {
+  if (window.aquaBuddyAPI) window.aquaBuddyAPI.respondWalkDeclined();
+  walkSpeechToast.classList.remove('show-toast');
+  walkSpeechToast.classList.add('hide-toast');
+  if (walkChair3D) {
+    walkChair3D.walkOutToRight(() => {
+      if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
+    });
+  } else {
+    if (window.aquaBuddyAPI) window.aquaBuddyAPI.closeOverlay();
+  }
+});
+
+// Listen to main process IPC triggers
 if (window.aquaBuddyAPI) {
   window.aquaBuddyAPI.onStartWalk((data) => {
     startWalkingSequence(data);
   });
+  window.aquaBuddyAPI.onStartWalkReminder((data) => {
+    startWalkReminderSequence(data);
+  });
 }
+

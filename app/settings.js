@@ -16,9 +16,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const autoStartCheck = document.getElementById('autoStartCheck');
   const statsCounter = document.getElementById('statsCounter');
 
+  const walkIntervalInput = document.getElementById('walkIntervalInput');
+  const walkGoalInput = document.getElementById('walkGoalInput');
+  const walkReminderCheck = document.getElementById('walkReminderCheck');
+  const cameraCheck = document.getElementById('cameraCheck');
+
   const btnSave = document.getElementById('btnSave');
   const btnResetStats = document.getElementById('btnResetStats');
-  const btnTestWalkTop = document.getElementById('btnTestWalkTop');
+  const btnTestWaterTop = document.getElementById('btnTestWaterTop');
+  const btnTestWalkChairTop = document.getElementById('btnTestWalkChairTop');
+  const btnTestWalkChairBottom = document.getElementById('btnTestWalkChairBottom');
 
   let currentScale = 1.4;
   let currentSizeName = 'Max Large';
@@ -48,6 +55,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     intervalInput.value = String(settings.intervalMinutes || 30);
     snoozeInput.value = String(settings.snoozeMinutes || 10);
     goalInput.value = String(settings.dailyGoal || 8);
+
+    if (walkIntervalInput) walkIntervalInput.value = String(settings.walkIntervalMinutes || 45);
+    if (walkGoalInput) walkGoalInput.value = String(settings.dailyWalkGoal || 4);
+    if (walkReminderCheck) walkReminderCheck.checked = settings.walkReminderEnabled !== false;
+    if (cameraCheck) cameraCheck.checked = settings.cameraCheckEnabled !== false;
+
     soundCheck.checked = settings.soundEnabled !== false;
     if (autoStartCheck) {
       autoStartCheck.checked = settings.autoStartOnBoot !== false;
@@ -55,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Update stats counter
     if (stats) {
-      statsCounter.textContent = `${stats.count} / ${settings.dailyGoal || 8} Glasses Drunk`;
+      statsCounter.textContent = `${stats.count || 0} / ${settings.dailyGoal || 8} Glasses Drunk • ${stats.walkCount || 0} / ${settings.dailyWalkGoal || 4} Walks Taken`;
     }
   }
 
@@ -100,9 +113,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const updated = {
       characterName: (charNameInput ? charNameInput.value.trim() : '') || 'Leo & Fox',
       characterScale: Math.min(1.4, Math.max(0.8, currentScale)),
-      intervalMinutes: parseInt(intervalInput.value, 10),
-      snoozeMinutes: parseInt(snoozeInput.value, 10),
+      intervalMinutes: parseInt(intervalInput.value, 10) || 30,
+      snoozeMinutes: parseInt(snoozeInput.value, 10) || 10,
       dailyGoal: parseInt(goalInput.value, 10) || 8,
+      walkIntervalMinutes: walkIntervalInput ? (parseInt(walkIntervalInput.value, 10) || 45) : 45,
+      dailyWalkGoal: walkGoalInput ? (parseInt(walkGoalInput.value, 10) || 4) : 4,
+      walkReminderEnabled: walkReminderCheck ? walkReminderCheck.checked : true,
+      cameraCheckEnabled: cameraCheck ? cameraCheck.checked : true,
       soundEnabled: soundCheck.checked,
       autoStartOnBoot: autoStartCheck ? autoStartCheck.checked : true
     };
@@ -118,28 +135,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Reset Today's Stats
   btnResetStats.addEventListener('click', async () => {
-    if (confirm("Reset today's water count to 0?")) {
+    if (confirm("Reset today's water and walk count to 0?")) {
       if (window.aquaBuddyAPI) {
         const res = await window.aquaBuddyAPI.resetTodayStats();
         if (res && res.stats) {
-          statsCounter.textContent = `0 / ${goalInput.value} Glasses Drunk`;
+          statsCounter.textContent = `0 / ${goalInput.value} Glasses Drunk • 0 / ${walkGoalInput ? walkGoalInput.value : 4} Walks Taken`;
         }
       }
     }
   });
 
-  // Test Walk Action
-  btnTestWalkTop.addEventListener('click', () => {
+  // Test Actions
+  if (btnTestWaterTop) {
+    btnTestWaterTop.addEventListener('click', () => {
+      if (window.aquaBuddyAPI) {
+        window.aquaBuddyAPI.triggerTestWalk();
+      }
+    });
+  }
+
+  function runTestWalkReminder() {
     if (window.aquaBuddyAPI) {
-      window.aquaBuddyAPI.triggerTestWalk();
+      window.aquaBuddyAPI.triggerTestWalkReminder();
     }
-  });
+  }
+
+  if (btnTestWalkChairTop) {
+    btnTestWalkChairTop.addEventListener('click', runTestWalkReminder);
+  }
+  if (btnTestWalkChairBottom) {
+    btnTestWalkChairBottom.addEventListener('click', runTestWalkReminder);
+  }
 
   // Listen to updates from other windows
   if (window.aquaBuddyAPI) {
     window.aquaBuddyAPI.onSettingsUpdated(({ settings, stats }) => {
       if (stats) {
-        statsCounter.textContent = `${stats.count} / ${settings.dailyGoal || 8} Glasses Drunk`;
+        statsCounter.textContent = `${stats.count || 0} / ${settings.dailyGoal || 8} Glasses Drunk • ${stats.walkCount || 0} / ${settings.dailyWalkGoal || 4} Walks Taken`;
       }
     });
   }

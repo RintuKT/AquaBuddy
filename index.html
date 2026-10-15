@@ -270,7 +270,10 @@
 
       <div class="demo-controls">
         <button class="btn-demo" id="triggerDemoBtn">
-          <span>🚀 Test Walking Mascot Animation</span>
+          <span>💧 Test Water Reminder</span>
+        </button>
+        <button class="btn-demo" id="triggerWalkDemoBtn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+          <span>🪑 Test Walk Routine (Chair & Camera 2s)</span>
         </button>
         <a href="https://github.com/RintuKT/AquaBuddy" target="_blank" class="btn-secondary">
           <span>⭐ GitHub Repository</span>
@@ -278,7 +281,7 @@
       </div>
 
       <div class="status-bar" id="demoStatusBar">
-        Click the button above to watch Leo & Fox walk in from the left!
+        Click either button above to test the Water Reminder (Left) or the Take a Walk Routine (Right with Chair)!
       </div>
     </div>
 
@@ -369,10 +372,16 @@
           const snoozeMins = document.getElementById('snoozeGapInput').value;
 
           if (msg.action === 'YES_WATER_DRANK') {
-            if (bar) bar.innerHTML = `🎉 <strong>Yey! Awesome!</strong> Next reminder in <strong>${regMins} minutes</strong>. Mascot walking back to left...`;
+            if (bar) bar.innerHTML = `🎉 <strong>Yey! Awesome!</strong> Next water reminder in <strong>${regMins} minutes</strong>. Mascot walking back to left...`;
             if (callback) callback({ stats: { count: 1 } });
           } else if (msg.action === 'REMIND_LATER') {
             if (bar) bar.innerHTML = `😭 <strong>Aww... Snoozed!</strong> Mascot will be back in <strong>${snoozeMins} minutes</strong>. Walking back to left...`;
+            if (callback) callback({ success: true });
+          } else if (msg.action === 'YES_WALK_TAKEN') {
+            if (bar) bar.innerHTML = `🌟 <strong>Good job! Walk routine logged.</strong> Leo celebrated: "Stay healthy, make it a routine!"`;
+            if (callback) callback({ success: true });
+          } else if (msg.action === 'REMIND_WALK_LATER') {
+            if (bar) bar.innerHTML = `💥 <strong>Chair hurled!</strong> Leo screamed: "YOU WILL DIE HERE!" 🪑`;
             if (callback) callback({ success: true });
           }
         }
@@ -398,6 +407,22 @@
             characterName: charName,
             intervalMinutes: regMins,
             snoozeMinutes: snoozeMins
+          }
+        }, {}, () => {});
+      }
+    });
+
+    document.getElementById('triggerWalkDemoBtn').addEventListener('click', () => {
+      const bar = document.getElementById('demoStatusBar');
+      const charName = document.getElementById('characterNameInput').value.trim() || 'Leo & Fox';
+
+      if (bar) bar.innerHTML = `🪑 <strong>Look at the bottom-center of your screen!</strong> ${charName} is walking in from the right with a chair...`;
+
+      if (window.__demoMessageListener) {
+        window.__demoMessageListener({
+          action: 'SHOW_WALK_REMINDER',
+          settings: {
+            characterName: charName
           }
         }, {}, () => {});
       }

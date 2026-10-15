@@ -15,6 +15,9 @@
     if (message.action === 'SHOW_WATER_REMINDER') {
       showWaterReminder(message.settings);
       sendResponse({ status: 'displayed' });
+    } else if (message.action === 'SHOW_WALK_REMINDER') {
+      showWalkReminder(message.settings);
+      sendResponse({ status: 'displayed' });
     }
   });
 
@@ -274,6 +277,207 @@
         walkOutToLeft();
       }
     }, 45000);
+  }
+
+  function showWalkReminder(customSettings) {
+    if (currentHost && document.body.contains(currentHost)) {
+      if (character3D) character3D.destroy();
+      currentHost.remove();
+    }
+
+    if (autoDismissTimer) clearTimeout(autoDismissTimer);
+
+    const charName = customSettings?.characterName || 'Leo & Fox';
+
+    currentHost = document.createElement('div');
+    currentHost.id = 'aquabuddy-walk-reminder-container';
+    currentHost.style.position = 'fixed';
+    currentHost.style.left = '50%';
+    currentHost.style.bottom = '20px';
+    currentHost.style.transform = 'translateX(-50%)';
+    currentHost.style.zIndex = '2147483647';
+    currentHost.style.pointerEvents = 'none';
+
+    shadowRoot = currentHost.attachShadow({ mode: 'open' });
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = getShadowStyles();
+    shadowRoot.appendChild(styleEl);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'aquabuddy-wrapper walk-wrapper';
+    wrapper.innerHTML = `
+      <div class="aquabuddy-mascot-wrapper" id="mascotWalk">
+        <div id="mascot3DBoxWalk" class="mascot-3d-box"></div>
+      </div>
+
+      <div class="aquabuddy-toast-card walk-toast-card" id="walkToastCard">
+        <button class="aquabuddy-close-btn" id="walkCloseBtn" title="Dismiss">✕</button>
+
+        <div id="walkPromptState" class="toast-state active-state">
+          <div class="toast-header">
+            <span class="water-icon-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🪑</span>
+            <div class="toast-title-box">
+              <h4 class="toast-title">${charName}</h4>
+              <p class="toast-subtitle" style="color: #d97706;">Take a Walk Reminder</p>
+            </div>
+          </div>
+
+          <div class="camera-pill" id="camPill">
+            <span class="cam-dot-pulse"></span>
+            <span id="camText">Checking for you...</span>
+            <span class="cam-timer" id="camTimerTag">2.0s</span>
+          </div>
+
+          <div class="toast-question" style="color: #78350f;">
+            Time to stand up and take a walk! Stretch your legs and move around.
+          </div>
+
+          <div class="toast-actions">
+            <button class="btn btn-yes is-locked" id="btnWalkYes" disabled style="background: linear-gradient(135deg, #10b981, #059669);">
+              <span class="btn-icon">🚶</span>
+              <span class="btn-text" id="btnWalkYesText">Yes, I'll walk! (2s)</span>
+            </button>
+            <button class="btn btn-later is-locked" id="btnWalkNo" disabled>
+              <span class="btn-icon">🪑</span>
+              <span class="btn-text">No, not now</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="walkSuccessState" class="toast-state" style="display: none;">
+          <div class="success-animation-wrap">
+            <div class="celebration-badge">🌟</div>
+            <div class="success-content">
+              <h4 class="success-title" style="color: #059669;">Good Job! Stay Healthy! 🌟</h4>
+              <p class="success-desc">Great job! Moving around regularly keeps you sharp and healthy. Make it a routine!</p>
+              <div class="intake-pill" style="background:#fef3c7; border-color:#fde68a; color:#b45309;">
+                <span>🚶 +1 Walk logged</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="walkThrowState" class="toast-state" style="display: none;">
+          <div class="snooze-animation-wrap">
+            <div class="snooze-badge" style="animation: angryShake 0.4s infinite;">🪑💥</div>
+            <div class="snooze-content">
+              <h4 class="snooze-title" style="color: #dc2626; font-size: 16px;">YOU WILL DIE HERE! 💥</h4>
+              <p class="snooze-desc" style="color: #991b1b; font-weight: 600;">Stand up and take a walk before it's too late!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    shadowRoot.appendChild(wrapper);
+    document.body.appendChild(currentHost);
+
+    const mascot3DBoxWalk = shadowRoot.getElementById('mascot3DBoxWalk');
+    const walkToastCard = shadowRoot.getElementById('walkToastCard');
+    const btnWalkYes = shadowRoot.getElementById('btnWalkYes');
+    const btnWalkNo = shadowRoot.getElementById('btnWalkNo');
+    const btnWalkYesText = shadowRoot.getElementById('btnWalkYesText');
+    const walkCloseBtn = shadowRoot.getElementById('walkCloseBtn');
+    const camTimerTag = shadowRoot.getElementById('camTimerTag');
+    const camText = shadowRoot.getElementById('camText');
+    const camPill = shadowRoot.getElementById('camPill');
+
+    const walkPromptState = shadowRoot.getElementById('walkPromptState');
+    const walkSuccessState = shadowRoot.getElementById('walkSuccessState');
+    const walkThrowState = shadowRoot.getElementById('walkThrowState');
+
+    const WalkEngine = window.AquaBuddy3DWalkChair || (window.AquaBuddy3DCharacter && window.AquaBuddy3DCharacter.WalkChair);
+    if (WalkEngine && mascot3DBoxWalk) {
+      character3D = new WalkEngine({
+        container: mascot3DBoxWalk,
+        width: 230,
+        height: 270,
+        startX: Math.max(450, Math.round(window.innerWidth * 0.4)),
+        targetX: 0,
+        onSeated: () => {
+          playSound('pop');
+          walkToastCard.classList.add('show-toast');
+          startLockCountdown();
+        },
+        onScreenImpact: () => {
+          document.body.classList.remove('aquabuddy-screen-shake');
+          void document.body.offsetWidth;
+          document.body.classList.add('aquabuddy-screen-shake');
+          setTimeout(() => document.body.classList.remove('aquabuddy-screen-shake'), 800);
+        }
+      });
+    }
+
+    function startLockCountdown() {
+      let remaining = 2000;
+      const timer = setInterval(() => {
+        remaining -= 100;
+        const s = Math.max(0, remaining / 1000).toFixed(1);
+        if (camTimerTag) camTimerTag.textContent = `${s}s`;
+        if (btnWalkYesText) btnWalkYesText.textContent = `Yes, I'll walk! (${Math.ceil(remaining / 1000)}s)`;
+
+        if (remaining <= 0) {
+          clearInterval(timer);
+          btnWalkYes.classList.remove('is-locked');
+          btnWalkYes.disabled = false;
+          btnWalkNo.classList.remove('is-locked');
+          btnWalkNo.disabled = false;
+          if (btnWalkYesText) btnWalkYesText.textContent = "Yes, I'll take a walk!";
+          if (camTimerTag) camTimerTag.textContent = '✓ Ready';
+          if (camText) camText.textContent = '👀 Face detected! Ready';
+          if (camPill) camPill.style.background = '#dcfce7';
+        }
+      }, 100);
+    }
+
+    function closeWalkOverlay() {
+      walkToastCard.classList.remove('show-toast');
+      walkToastCard.classList.add('hide-toast');
+      setTimeout(() => {
+        if (currentHost && document.body.contains(currentHost)) {
+          currentHost.remove();
+          currentHost = null;
+        }
+      }, 2600);
+    }
+
+    btnWalkYes.addEventListener('click', () => {
+      if (btnWalkYes.classList.contains('is-locked')) return;
+      playSound('success');
+      walkPromptState.style.display = 'none';
+      walkSuccessState.style.display = 'block';
+
+      chrome.runtime.sendMessage({ action: 'YES_WALK_TAKEN' });
+
+      if (character3D && character3D.triggerCelebrateWalk) {
+        character3D.triggerCelebrateWalk(() => {
+          closeWalkOverlay();
+        });
+      } else {
+        setTimeout(closeWalkOverlay, 1800);
+      }
+    });
+
+    btnWalkNo.addEventListener('click', () => {
+      if (btnWalkNo.classList.contains('is-locked')) return;
+      walkPromptState.style.display = 'none';
+      walkThrowState.style.display = 'block';
+
+      chrome.runtime.sendMessage({ action: 'REMIND_WALK_LATER' });
+
+      if (character3D && character3D.triggerThrowChair) {
+        character3D.triggerThrowChair(() => {
+          closeWalkOverlay();
+        });
+      } else {
+        setTimeout(closeWalkOverlay, 1800);
+      }
+    });
+
+    walkCloseBtn.addEventListener('click', () => {
+      closeWalkOverlay();
+    });
   }
 
   function getShadowStyles() {
@@ -734,6 +938,67 @@
         0% { transform: scale(0.3); opacity: 0; }
         60% { transform: scale(1.15); opacity: 1; }
         100% { transform: scale(1); }
+      }
+
+      /* Walk & Chair Specific Shadow Styles */
+      .walk-wrapper {
+        justify-content: center;
+      }
+
+      .walk-toast-card {
+        border-color: rgba(245, 158, 11, 0.45);
+        box-shadow: 0 16px 36px -4px rgba(245, 158, 11, 0.28);
+      }
+
+      .camera-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 8px;
+        transition: background 0.3s ease;
+      }
+
+      .cam-dot-pulse {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #f59e0b;
+        animation: camPulse 1s infinite alternate;
+      }
+
+      @keyframes camPulse {
+        0% { opacity: 0.5; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1.2); }
+      }
+
+      .cam-timer {
+        margin-left: auto;
+        background: #d97706;
+        color: white;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-size: 10.5px;
+        font-weight: 800;
+      }
+
+      .btn.is-locked {
+        opacity: 0.5;
+        cursor: not-allowed;
+        filter: grayscale(0.4);
+        transform: none !important;
+      }
+
+      @keyframes angryShake {
+        0% { transform: rotate(-5deg); }
+        50% { transform: rotate(5deg) scale(1.1); }
+        100% { transform: rotate(-5deg); }
       }
     `;
   }
