@@ -43,12 +43,17 @@ A cross-platform desktop application and browser extension that reminds you to d
 
 AquaBuddy runs natively on macOS (Apple Silicon M1/M2/M3/M4 & Intel) and Windows 10/11:
 
-### 🍏 Option 1: 1-Line Instant Install for macOS (Zero Warnings — Recommended!)
-Opens directly without any security or quarantine warnings:
+### 🍏 1-Line Instant Terminal Install for macOS
+Runs and installs the latest version without security warnings:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.sh | bash
 ```
-> **Why this is recommended**: Files downloaded via `curl` in Terminal are not tagged with browser quarantine attributes, so macOS launches AquaBuddy directly with zero security popups.
+
+### 🪟 1-Line Instant PowerShell Install for Windows
+Open PowerShell and run:
+```powershell
+irm https://raw.githubusercontent.com/RintuKT/AquaBuddy/main/install.ps1 | iex
+```
 
 ---
 
