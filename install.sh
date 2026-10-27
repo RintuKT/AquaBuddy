@@ -62,8 +62,13 @@ if ! curl -fSL "$DOWNLOAD_URL" -o "$ZIP_FILE" 2>/dev/null; then
 fi
 
 echo "📂 3. Installing to $APP_DIR..."
+# Ensure any running AquaBuddy instance is stopped to prevent file locks in /Applications
+pkill -f "AquaBuddy" 2>/dev/null || true
+killall AquaBuddy 2>/dev/null || true
+sleep 1
+
 if [ -d "$TARGET_APP" ]; then
-  rm -rf "$TARGET_APP"
+  rm -rf "$TARGET_APP" 2>/dev/null || sudo rm -rf "$TARGET_APP" 2>/dev/null || true
 fi
 
 unzip -q "$ZIP_FILE" -d "$TMP_DIR"
